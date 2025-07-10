@@ -1,0 +1,454 @@
+---
+description: Comprehensive guide for migrating from XCTest to Swift Testing with best practices from WWDC 2024
+globs: "**/*Tests.swift, **/*Test.swift"
+alwaysApply: false
+---
+
+# 궁극의 Swift Testing 플레이북 (2024 WWDC 에디션, 2025년 6월 Apple 문서로 확장)
+https://developer.apple.com/xcode/swift-testing/
+
+XCTest에서 Swift Testing으로 마이그레이션하고 새로운 프레임워크를 마스터하기 위한 실무 중심의 포괄적인 가이드입니다. 이 플레이북은 WWDC 2024와 공식 Apple 문서의 최신 패턴과 모범 사례를 통합하여 더 강력하고 표현력 있으며 유지보수하기 쉬운 테스트를 만들 수 있도록 합니다.
+
+---
+
+## **1. 마이그레이션 & 도구 기준선**
+
+원활하고 점진적인 마이그레이션을 위해 환경을 설정합니다.
+
+| 항목 | 이유 |
+|---|---|
+| **Xcode 16 & Swift 6** | Swift Testing은 최신 툴체인과 함께 번들로 제공됩니다. 매크로, 구조화된 동시성, 강력한 타입 시스템 검사와 같은 현대적인 Swift 기능을 활용합니다. |
+| **XCTest 타겟 유지** | **점진적 마이그레이션이 핵심입니다.** 동일한 타겟에서 XCTest와 Swift Testing 테스트를 함께 사용할 수 있어 CI를 중단하지 않고 파일별로 마이그레이션할 수 있습니다. 두 프레임워크는 공존할 수 있습니다. |
+| **병렬 실행 활성화**| 테스트 플랜에서 "Use parallel execution"이 활성화되어 있는지 확인하세요. Swift Testing은 기본적으로 테스트를 병렬로 실행하여 테스트 실행을 극적으로 빠르게 하고 순차 실행에서는 놓칠 수 있는 숨겨진 상태 의존성을 발견하는 데 도움이 됩니다. |
+
+### 마이그레이션 액션 항목
+- [ ] 모든 개발자 머신과 CI 러너가 macOS 15+ 및 Xcode 16+인지 확인합니다.
+- [ ] Linux/Windows를 지원하는 프로젝트의 경우, `Package.swift`에 `swift-testing` SPM 패키지를 추가합니다. Xcode에 번들로 제공되며 Apple 플랫폼에서는 필요하지 않습니다.
+- [ ] **기존 테스트 타겟**의 경우, 프레임워크를 명시적으로 활성화해야 합니다. 타겟의 **Build Settings**에서 **Enable Testing Frameworks**를 찾아 값을 **Yes**로 설정합니다. 이 설정 없이는 `import Testing`이 실패합니다.
+- [ ] 기본 테스트 플랜에서 **"Use parallel execution"**이 활성화되어 있는지 확인합니다. 이것이 기본값이며 권장 설정입니다.
+
+---
+
+## **2. 표현력 있는 어서션: `#expect` & `#require`**
+
+전체 `XCTAssert` 패밀리를 두 개의 강력하고 표현력 있는 매크로로 교체합니다. 이들은 일반적인 Swift 표현식을 받아들여 수십 개의 특수화된 `XCTAssert` 함수의 필요성을 제거합니다.
+
+| 매크로 | 사용 사례 & 동작 |
+|---|---|
+| **`#expect(expression)`** | **소프트 체크.** 대부분의 검증에 사용합니다. 표현식이 `false`이면 이슈가 기록되지만 테스트 함수는 계속 실행됩니다. 이를 통해 한 번의 실행에서 여러 실패를 찾을 수 있습니다. |
+| **`#require(expression)`**| **하드 체크.** 중요한 전제 조건(예: 옵셔널 언래핑)에 사용합니다. 표현식이 `false`이거나 예외를 던지면 테스트가 즉시 중단됩니다. 이는 잘못된 상태로부터의 연쇄 실패를 방지합니다. |
+
+### 파워 무브: 시각적 실패 진단
+종종 비교가 실패했다는 것만 보고하는 `XCTAssert`와 달리, `#expect`는 IDE와 로그에서 직접 실패를 일으킨 정확한 값들을 보여줍니다. 이 시각적 피드백은 엄청난 생산성 향상을 제공합니다.
+
+**코드:**
+```swift
+@Test("사용자 수가 최소 요구사항을 충족합니다")
+func testUserCount() {
+    let userCount = 5
+    // 이 체크는 실패할 것입니다
+    #expect(userCount > 10)
+}
+```
+
+**Xcode에서의 실패 출력:**
+```
+▽ Expected expression to be true
+#expect(userCount > 10)
+      |         | |
+      5         | 10
+                false
+```
+
+### 파워 무브: 옵셔널 안전 언래핑
+`#require`는 `XCTUnwrap`의 새롭고 더 안전한 대체입니다. `nil`을 체크할 뿐만 아니라 후속 사용을 위해 값을 언래핑합니다.
+
+**이전: XCTest 방식**
+```swift
+// XCTestCase 서브클래스에서...
+func testFetchUser_XCTest() async throws {
+    let user = try XCTUnwrap(await fetchUser(id: "123"), "사용자 가져오기는 nil을 반환하지 않아야 합니다")
+    XCTAssertEqual(user.id, "123")
+}
+```
+
+**이후: Swift Testing 방식**
+```swift
+@Test("유효한 사용자 가져오기가 성공합니다")
+func testFetchUser() async throws {
+    // #require는 nil 체크와 `user` 언래핑을 한 단계에서 수행합니다.
+    // fetchUser가 nil을 반환하면, 테스트는 여기서 중지되고 실패합니다.
+    let user = try #require(await fetchUser(id: "123"))
+
+    // `user`는 이제 옵셔널이 아닌 User이며, 추가 어서션을 위해 준비되었습니다.
+    #expect(user.id == "123")
+    #expect(user.age == 37)
+}
+```
+
+### 일반적인 어서션 변환 빠른 참조
+
+`XCTest` 어서션을 마이그레이션할 때 이 표를 치트 시트로 사용하세요.
+
+| XCTest 어서션 | Swift Testing 동등물 | 참고 |
+|---|---|---|
+| `XCTAssert(expr)` | `#expect(expr)` | 불린 표현식에 대한 직접 대체. |
+| `XCTAssertEqual(a, b)` | `#expect(a == b)` | 표준 `==` 연산자 사용. |
+| `XCTAssertNotEqual(a, b)`| `#expect(a != b)` | 표준 `!=` 연산자 사용. |
+| `XCTAssertNil(a)` | `#expect(a == nil)` | `nil`과의 직접 비교. |
+| `XCTAssertNotNil(a)` | `#expect(a != nil)` | `nil`과의 직접 비교. |
+| `XCTAssertTrue(a)` | `#expect(a)` | `a`가 이미 Bool이면 변경 불필요. |
+| `XCTAssertFalse(a)` | `#expect(!a)` | `!` 연산자를 사용하여 표현식 부정. |
+| `XCTAssertGreaterThan(a, b)` | `#expect(a > b)` | 표준 비교 연산자 사용: `>`, `<`, `>=`, `<=` |
+| `XCTUnwrap(a)` | `try #require(a)` | 옵셔널을 언래핑하는 선호되는 더 안전한 방법. |
+| `XCTAssertThrowsError(expr)` | `#expect(throws: Error.self) { expr }` | 모든 에러를 체크하는 기본 형식. |
+| `XCTAssertNoThrow(expr)` | `#expect(throws: Never.self) { expr }` | 에러가 던져지지 않음을 어서트하는 명시적 방법. |
+
+### 액션 항목
+- [ ] `grep -R "XCTAssert" .`를 실행하여 모든 레거시 어서션을 찾습니다.
+- [ ] `XCTUnwrap` 호출을 `try #require()`로 변환합니다. 이는 직접적이고 우수한 대체입니다.
+- [ ] 대부분의 `XCTAssert` 호출을 `#expect()`로 변환합니다. 테스트를 계속하는 것이 의미가 없는 전제 조건에만 `#require()`를 사용합니다.
+- [ ] 동일한 객체에 대한 여러 관련 체크의 경우, 별도의 `#expect()` 문을 사용합니다. 각각은 독립적으로 평가되고 모든 실패가 보고됩니다.
+
+---
+
+## **3. 설정, 해제 및 상태 라이프사이클**
+
+Swift Testing은 `setUpWithError`와 `tearDownWithError`를 `init()`과 `deinit`를 사용하는 더 자연스럽고 타입 안전한 라이프사이클로 대체합니다.
+
+**핵심 개념:** 테스트 스위트(`struct` 또는 `class`)의 새로운 인스턴스가 포함된 **각** 테스트 함수에 대해 생성됩니다. 이는 테스트 격리의 초석으로, 한 테스트의 상태가 다른 테스트로 누출될 수 없음을 보장합니다.
+
+| 메서드 | 대체하는 것... | 동작 |
+|---|---|---|
+| `init()` | `setUpWithError()` | 스위트의 초기화자입니다. 모든 설정 코드를 여기에 두세요. `async`와 `throws`가 가능합니다. |
+| `deinit` | `tearDownWithError()` | 소멸자입니다. 정리 코드를 여기에 두세요. 각 테스트 후에 자동으로 실행됩니다. **참고:** `deinit`는 `struct`가 아닌 `class` 또는 `actor` 스위트 타입에서만 사용할 수 있습니다. 이는 스위트에 클래스를 선택하는 일반적인 이유입니다. |
+
+### 실용적인 예제: 데이터베이스 테스트 스위트 마이그레이션
+
+**이전: XCTest 방식**
+```swift
+final class DatabaseServiceXCTests: XCTestCase {
+    var sut: DatabaseService!
+    var tempDirectory: URL!
+
+    override func setUpWithError() throws {
+        try super.setUpWithError()
+        tempDirectory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: tempDirectory, withIntermediateDirectories: true)
+        
+        let testDatabase = TestDatabase(storageURL: tempDirectory)
+        sut = DatabaseService(database: testDatabase)
+    }
+
+    override func tearDownWithError() throws {
+        try FileManager.default.removeItem(at: tempDirectory)
+        sut = nil
+        tempDirectory = nil
+        try super.tearDownWithError()
+    }
+
+    func testSavingUser() throws {
+        let user = User(id: "user-1", name: "Alex")
+        try sut.save(user)
+        let loadedUser = try sut.loadUser(id: "user-1")
+        XCTAssertNotNil(loadedUser)
+    }
+}
+```
+
+**이후: Swift Testing 방식 (`deinit`을 위해 `class` 사용)**
+```swift
+@Suite final class DatabaseServiceTests {
+    // 정리를 위한 `deinit`를 보여주기 위해 여기서 클래스를 사용합니다.
+    let sut: DatabaseService
+    let tempDirectory: URL
+
+    init() throws {
+        // ARRANGE: 이 스위트의 각 테스트 전에 실행됩니다.
+        self.tempDirectory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: tempDirectory, withIntermediateDirectories: true)
+        
+        let testDatabase = TestDatabase(storageURL: tempDirectory)
+        self.sut = DatabaseService(database: testDatabase)
+    }
+    
+    deinit {
+        // TEARDOWN: 각 테스트 후에 실행됩니다.
+        try? FileManager.default.removeItem(at: tempDirectory)
+    }
+
+    @Test func testSavingUser() throws {
+        let user = User(id: "user-1", name: "Alex")
+        try sut.save(user)
+        #expect(try sut.loadUser(id: "user-1") != nil)
+    }
+}
+```
+
+### 액션 항목
+- [ ] 테스트 클래스를 `XCTestCase`에서 `struct`(자동 상태 격리를 위해 선호) 또는 `final class`로 변환합니다.
+- [ ] `setUpWithError` 로직을 스위트의 `init()`으로 이동합니다.
+- [ ] `tearDownWithError` 로직을 스위트의 `deinit`으로 이동합니다(필요시 `class` 또는 `actor` 사용).
+- [ ] SUT와 그 의존성을 `init()`에서 초기화된 `let` 프로퍼티로 정의합니다.
+
+---
+
+## **4. 에러 처리 마스터하기**
+
+던져진 에러를 검증하기 위한 전용의 표현력 있는 API로 `do/catch`를 넘어섭니다.
+
+| 오버로드 | 대체하는 것... | 예제 & 사용 사례 |
+|---|---|---|
+| **`#expect(throws: Error.self)`**| 기본 `XCTAssertThrowsError` | *모든* 에러가 던져졌는지 확인합니다. |
+| **`#expect(throws: BrewingError.self)`** | 타입화된 `XCTAssertThrowsError` | 특정 *타입*의 에러가 던져졌는지 확인합니다. |
+| **`#expect(throws: BrewingError.outOfBeans)`**| 특정 에러 `XCTAssertThrowsError`| 특정 에러 *값*이 던져졌는지 검증합니다. |
+| **`#expect(throws: ... ) catch: { ... }`** | `switch`가 있는 `do/catch` | **페이로드 검사.** 연관 값이 있는 에러를 위한 궁극의 도구입니다. 던져진 에러를 검사할 클로저를 제공합니다. <br> ```swift #expect(throws: BrewingError.self) { try brew(beans: 0) } catch: { error in guard case let .notEnoughBeans(needed) = error else { Issue.record("잘못된 에러 케이스가 던져짐"); return } #expect(needed > 0) } ``` |
+| **`#expect(throws: Never.self)`** | `XCTAssertNoThrow` | 함수가 던지지 *않음*을 명시적으로 어서트합니다. 해피 패스 테스트에 이상적입니다. |
+
+---
+
+## **5. 매개변수화된 테스트: 보일러플레이트 대폭 감소**
+
+여러 인수 세트로 단일 테스트 함수를 실행하여 최소한의 코드로 커버리지를 최대화합니다. 각 인수 세트가 독립적인 테스트로 실행되고, 병렬로 실행될 수 있으며, 실패가 개별적으로 보고되기 때문에 `for-in` 루프보다 우수합니다.
+
+| 패턴 | 사용 방법 및 시기 |
+|---|---|
+| **단일 컬렉션** | `@Test(arguments: [0, 100, -40])` <br> 가장 간단한 형식입니다. 입력 컬렉션을 전달합니다. |
+| **압축된 컬렉션** | `@Test(arguments: zip(inputs, expectedOutputs))` <br> 가장 일반적이고 강력한 패턴입니다. `zip`을 사용하여 입력과 예상 출력을 일대일 대응으로 쌍을 만듭니다. |
+| **다중 컬렉션** | `@Test(arguments: ["USD", "EUR"], [1, 10, 100])` <br> **⚠️ 주의: 데카르트 곱.** 인수의 *모든 가능한 조합*에 대해 테스트 케이스를 만듭니다. 모든 조합을 테스트해야 할 때 의도적으로 사용하세요. |
+
+### 예제: 반복적인 테스트를 매개변수화된 테스트로 마이그레이션
+
+**이전: XCTest 방식**
+```swift
+func testFlavorVanillaContainsNoNuts() {
+    let flavor = Flavor.vanilla
+    XCTAssertFalse(flavor.containsNuts)
+}
+func testFlavorPistachioContainsNuts() {
+    let flavor = Flavor.pistachio
+    XCTAssertTrue(flavor.containsNuts)
+}
+func testFlavorChocolateContainsNoNuts() {
+    let flavor = Flavor.chocolate
+    XCTAssertFalse(flavor.containsNuts)
+}
+```
+
+**이후: `zip`을 사용한 Swift Testing 방식**
+```swift
+@Test("플레이버 견과류 함유량이 올바릅니다", arguments: zip(
+    [Flavor.vanilla, .pistachio, .chocolate],
+    [false, true, false]
+))
+func testFlavorContainsNuts(flavor: Flavor, expected: Bool) {
+    #expect(flavor.containsNuts == expected)
+}
+```
+
+---
+
+## **6. 조건부 실행 및 건너뛰기**
+
+기능 플래그, 환경 또는 알려진 이슈에 따라 어떤 테스트가 실행되는지 동적으로 제어합니다.
+
+| 특성 | 기능 및 사용 방법 |
+|---|---|
+| **`.disabled("이유")`** | **무조건 테스트를 건너뜁니다.** 테스트는 실행되지 않지만 여전히 컴파일됩니다. CI 가시성을 위해 항상 설명적인 이유를 제공하세요(예: `"CI에서 불안정함, FB12345 참조"`). |
+| **`.enabled(if: condition)`** | **조건부로 테스트를 실행합니다.** 불린 `condition`이 `true`일 때만 테스트가 실행됩니다. 기능 플래그나 특정 환경에 연결된 테스트에 완벽합니다. <br> ```swift @Test(.enabled(if: FeatureFlags.isNewAPIEnabled)) func testNewAPI() { /* ... */ } ``` |
+| **`@available(...)`** | **OS 버전별 테스트.** 이 속성을 테스트 함수에 직접 적용합니다. 런타임 `#available` 체크보다 나은 이유는 테스트 러너가 플랫폼 이유로 테스트가 건너뛰어진다는 것을 알 수 있어 테스트 리포트에서 더 깔끔하기 때문입니다. |
+
+---
+
+## **7. 더 명확한 실패를 위한 특수화된 어서션**
+
+`#expect(a == b)`가 작동하지만, 목적에 맞게 구축된 패턴은 무엇이 실패했는지가 아니라 *왜* 실패했는지를 설명하여 더 날카롭고 실행 가능한 실패 메시지를 제공합니다.
+
+> **⚠️ 참고:** Swift Testing은 여전히 발전 중이며 XCTest가 제공하는 모든 특수화된 어서션 API를 갖지 않습니다. 일부 일반적인 패턴은 수동 구현이나 Swift Numerics 같은 서드파티 라이브러리가 필요합니다.
+
+| 어서션 타입 | 일반 체크보다 나은 이유 |
+| :--- | :--- |
+| **컬렉션 비교 (순서 무관)**<br>순서 독립적 동등성을 위해 Set 비교 사용 | 배열에 대한 단순한 `==` 체크는 요소가 같지만 순서가 다르면 실패합니다. Set으로 변환하면 순서를 무시하여 순서가 중요하지 않은 테스트에서 거짓 음성을 방지합니다. <br><br> **취약함:** `#expect(tags == ["ios", "swift"])` <br> **견고함:** `#expect(Set(tags) == Set(["swift", "ios"]))` |
+| **부동소수점 정확도**<br>수동 허용 오차 체크나 Swift Numerics 사용 | 부동소수점 수학은 부정확합니다. `#expect(0.1 + 0.2 == 0.3)`은 실패할 것입니다. 견고한 부동소수점 비교를 위해 수동 허용 오차 체크나 Swift Numerics를 사용하세요. <br><br> **실패함:** `#expect(result == 0.3)` <br> **성공함:** `#expect(abs(result - 0.3) < 0.0001)` <br> **Swift Numerics 사용:** `#expect(result.isApproximatelyEqual(to: 0.3, absoluteTolerance: 0.0001))` |
+
+---
+
+## **8. 규모에서의 구조와 조직**
+
+스위트와 태그를 사용하여 크고 복잡한 테스트 베이스를 관리합니다.
+
+### 스위트와 중첩된 스위트
+`@Suite`는 관련 테스트를 그룹화하고 명확한 계층구조를 위해 중첩될 수 있습니다. 스위트에 적용된 특성은 그 안의 모든 테스트와 중첩된 스위트에 상속됩니다.
+
+### 횡단 관심사를 위한 태그
+태그는 스위트에 관계없이 공통 특성(예: `.network`, `.ui`, `.regression`)과 테스트를 연관시킵니다. 이는 필터링에 매우 유용합니다.
+
+1.  **중앙 파일에서 태그 정의:**
+    ```swift
+    // /Tests/Support/TestTags.swift
+    import Testing
+
+    extension Tag {
+        @Tag static var fast: Self
+        @Tag static var regression: Self
+        @Tag static var flaky: Self
+        @Tag static var networking: Self
+    }
+    ```
+2.  **태그 적용 & 필터링:**
+    ```swift
+    // 테스트나 스위트에 적용
+    @Test("사용자명 검증", .tags(.fast, .regression))
+    func testUsername() { /* ... */ }
+
+    // CLI에서 실행
+    // swift test --filter .fast
+    // swift test --skip .flaky
+    // swift test --filter .networking --filter .regression
+
+    // Xcode 테스트 플랜에서 필터링
+    // "Include Tags" 필드에 "fast"를 추가하거나 "Exclude Tags" 필드에 "flaky"를 추가하세요.
+    ```
+### 파워 무브: 태그를 위한 Xcode UI 통합
+Xcode 16은 태그와 깊이 통합되어 강력한 조직 도구로 만듭니다.
+
+-   **테스트 네비게이터에서 태그별 그룹화:** 테스트 네비게이터(`Cmd-6`)에서 상단의 태그 아이콘을 클릭합니다. 이렇게 하면 파일 계층구조에서 테스트가 태그별로 그룹화된 뷰로 전환됩니다. 특정 기능과 관련된 모든 테스트를 시각화하고 실행하는 환상적인 방법입니다.
+-   **테스트 리포트 인사이트:** 테스트 실행 후, 테스트 리포트는 자동으로 패턴을 찾을 수 있습니다. **Insights** 탭으로 가서 **"'networking' 태그가 있는 모든 7개 테스트가 실패했습니다."**와 같은 메시지를 보세요. 이는 즉시 시스템적 이슈를 가리켜 상당한 디버깅 시간을 절약합니다.
+
+---
+
+## **9. 동시성 및 비동기 테스트**
+
+### Async/Await와 확인
+- **비동기 테스트**: 테스트 함수를 간단히 `async`로 표시하고 `await`를 사용하세요.
+- **확인**: 완료 핸들러가 있거나 여러 번 발생하는 API(델리게이트나 알림 같은)를 테스트하려면 `confirmation`을 사용하세요.
+- **`fulfillment(of:timeout:)`**: 확인이 충족되거나 타임아웃에 도달할 때까지 테스트를 일시 중지하기 위해 `await`하는 전역 함수입니다.
+
+```swift
+@Test("델리게이트가 3번 알림을 받습니다")
+async func testDelegateNotifications() async throws {
+    // 정확히 3번 충족될 것으로 예상되는 확인을 생성합니다.
+    let confirmation = confirmation("delegate.didUpdate가 호출되었습니다", expectedCount: 3)
+    let delegate = MockDelegate { await confirmation.fulfill() }
+    let sut = SystemUnderTest(delegate: delegate)
+
+    sut.performActionThatNotifiesThreeTimes()
+    
+    // 1초 타임아웃으로 확인이 충족될 때까지 명시적으로 기다립니다.
+    try await fulfillment(of: [confirmation], timeout: .seconds(1))
+}
+```
+
+### 고급 비동기 패턴
+
+#### 이벤트가 절대 발생하지 않음을 어서트하기
+`expectedCount: 0`인 확인을 사용하여 작업 중에 콜백이나 델리게이트 메서드가 *절대* 호출되지 않는지 확인합니다. 그것에 대해 `fulfill()`가 호출되면 테스트가 실패합니다.
+
+```swift
+@Test("로그아웃은 데이터 동기화를 트리거하지 않습니다")
+async func testLogoutDoesNotSync() async throws {
+    let syncConfirmation = confirmation("데이터 동기화가 트리거되었습니다", expectedCount: 0)
+    let mockSyncEngine = MockSyncEngine { await syncConfirmation.fulfill() }
+    let sut = AccountManager(syncEngine: mockSyncEngine)
+    
+    sut.logout()
+    
+    // 타임아웃 내에 확인이 절대 충족되지 않으면 테스트가 통과합니다.
+    // 만약 충족되면, 이것은 에러를 던지고 테스트를 실패시킵니다.
+    await fulfillment(of: [syncConfirmation], timeout: .seconds(0.5), performing: {})
+}
+```
+
+#### 레거시 완료 핸들러 브릿징
+완료 핸들러를 사용하는 오래된 비동기 코드의 경우, `withCheckedThrowingContinuation`를 사용하여 Swift Testing이 작업할 수 있는 현대적인 `async/await` 호출로 래핑하세요.
+
+```swift
+func legacyFetch(completion: @escaping (Result<Data, Error>) -> Void) {
+    // ... 레거시 비동기 코드 ...
+}
+
+@Test func testLegacyFetch() async throws {
+    let data = try await withCheckedThrowingContinuation { continuation in
+        legacyFetch { result in
+            continuation.resume(with: result)
+        }
+    }
+    #expect(!data.isEmpty)
+}
+```
+
+### 병렬성 제어
+- **`.serialized`**: 이 특성을 `@Test`나 `@Suite`에 적용하여 그 내용을 순차적으로(한 번에 하나씩) 실행하도록 강제합니다. 스레드 안전하지 않거나 숨겨진 상태 의존성이 있는 레거시 테스트를 위한 임시 조치로 사용하세요. 목표는 병렬로 실행되도록 리팩토링하는 것이어야 합니다.
+- **`.timeLimit`**: 멈춘 테스트가 CI를 지연시키는 것을 방지하는 안전망입니다. 스위트와 테스트 레벨 모두에 적용될 때 더 제한적인(짧은) 기간이 우선합니다.
+
+---
+
+## **10. 고급 API 쿡북**
+
+| 기능 | 기능 및 사용 방법 |
+|---|---|
+| **`withKnownIssue`** | 테스트를 **예상 실패**로 표시합니다. 알려진 버그에 대해 `.disabled`보다 낫습니다. 테스트는 여전히 실행되지만 스위트를 실패시키지 않습니다. 중요한 것은, 기본 버그가 수정되고 테스트가 *통과*하면, `withKnownIssue`가 실패하여 이를 제거하라고 알려줍니다. |
+| **`CustomTestStringConvertible`** | 테스트 실패 로그에서 타입에 대한 사용자 정의의 읽기 쉬운 설명을 제공합니다. 디버깅을 훨씬 쉽게 만들기 위해 주요 모델이 이 프로토콜을 준수하도록 하세요. |
+| **`.bug("JIRA-123")` 특성** | 테스트를 이슈 트래커의 티켓과 직접 연관시킵니다. 이는 Xcode와 Xcode Cloud의 테스트 리포트에 매우 유용한 컨텍스트를 추가합니다. |
+| **`Test.current`** | 현재 테스트의 메타데이터(이름, 태그, 소스 위치 등)에 런타임 액세스를 제공하는 정적 프로퍼티(`Test.current`)입니다. 고급 사용자 정의 로깅에 유용합니다. |
+| **다중 기대 패턴** | 여러 프로퍼티를 검증하기 위해 별도의 `#expect()` 문을 사용하세요. 각 기대는 독립적으로 평가되고, 이전 것들이 실패해도 모든 실패가 보고됩니다. 이는 객체 상태에 대한 포괄적인 피드백을 제공합니다. <br><br> ```swift let user = try #require(loadUser()) #expect(user.name == "John") #expect(user.age >= 18) #expect(user.isActive) ``` |
+
+---
+
+## **11. 일반적인 함정과 피하는 방법**
+
+Swift Testing을 채택할 때 개발자가 저지르는 일반적인 실수의 체크리스트입니다.
+
+1.  **`#require()` 남용**
+    -   **함정:** 모든 체크에 `#require()`를 사용하는 것. 이는 테스트를 취약하게 만들고 정보를 숨깁니다. 첫 번째 `#require()`가 실패하면 테스트의 나머지 부분이 중단되고, 다른 것들도 깨졌는지 알 수 없습니다.
+    -   **수정:** 대부분의 체크에는 `#expect()`를 사용하세요. 실패하면 테스트의 나머지 부분이 무의미해지는 필수 설정 조건(예: null이 아닌 SUT, 유효한 URL)에만 `#require()`를 사용하세요.
+
+2.  **상태가 격리됨을 잊기**
+    -   **함정:** 한 테스트에서 수정된 프로퍼티가 같은 스위트의 다음 테스트에서 값을 유지할 것이라고 가정하는 것.
+    -   **수정:** 모든 테스트에 대해 스위트의 **새 인스턴스**가 생성된다는 것을 기억하세요. 이는 버그가 아니라 기능입니다! 모든 공유 설정은 `init()`에서 일어나야 합니다. 테스트 간에 상태가 이어지는 것에 의존하지 마세요.
+
+3.  **실수로 데카르트 곱 사용하기**
+    -   **함정:** `zip` 없이 매개변수화된 테스트에 여러 컬렉션을 전달하여 테스트 케이스의 지수적 폭발을 일으키는 것(`@Test(arguments: collectionA, collectionB)`).
+    -   **수정:** 의도적으로 행동하세요. 일대일 쌍을 원한다면 **항상 `zip`을 사용하세요**. 모든 가능한 조합을 명시적으로 테스트하고 싶을 때만 다중 컬렉션 문법을 사용하세요.
+
+4.  **안전하지 않은 테스트에 대해 `.serialized` 특성 무시하기**
+    -   **함정:** 스레드 안전하지 않은 오래된 상태 저장 테스트를 마이그레이션하고 병렬 실행으로 인해 무작위로 실패하는 것을 보는 것.
+    -   **수정:** 임시 조치로, 이러한 테스트가 포함된 스위트에 `.serialized` 특성을 적용하세요. 이는 테스트를 한 번에 하나씩 실행하도록 강제하여 이전 동작을 복원합니다. 장기 목표는 테스트를 병렬 안전하게 리팩토링하고 특성을 제거하는 것이어야 합니다.
+
+---
+
+## **12. XCTest에서 마이그레이션**
+
+Swift Testing과 XCTest는 같은 타겟에서 공존할 수 있어 점진적 마이그레이션이 가능합니다.
+
+### 한눈에 보는 주요 차이점
+
+| 기능 | XCTest | Swift Testing |
+|---|---|---|
+| **테스트 발견** | 메서드명이 `test...`로 시작해야 함 | 모든 함수나 메서드에 `@Test` 속성. |
+| **스위트 타입** | `class MyTests: XCTestCase` | `struct MyTests` (선호), `class`, 또는 `actor`. |
+| **어서션** | `XCTAssert...()` 함수 패밀리 | Swift 표현식을 사용하는 `#expect()`와 `#require()` 매크로. |
+| **에러 언래핑** | `try XCTUnwrap(...)` | `try #require(...)` |
+| **설정/해제**| `setUpWithError()`, `tearDownWithError()` | `init()`, `deinit` (클래스/액터에서) |
+| **비동기 대기**| `XCTestExpectation` | `confirmation()`와 `await fulfillment(of:timeout:)` |
+| **병렬성** | 옵트인, 다중 프로세스 | 옵트아웃, Swift Concurrency를 통한 인프로세스. |
+
+### 마이그레이션하지 말아야 할 것들 (아직)
+Swift Testing에서 현재 지원되지 않으므로 다음의 경우 XCTest를 계속 사용하세요:
+- **UI 자동화 테스트** (`XCUIApplication` 사용)
+- **성능 테스트** (`XCTMetric`과 `measure { ... }` 사용)
+- **Objective-C로 작성된 테스트**
+
+---
+
+## **부록: 영원한 테스트 원칙 (F.I.R.S.T. 원칙)**
+
+이러한 기본 원칙은 프레임워크에 무관하며, Swift Testing은 그 어느 때보다 이를 쉽게 준수할 수 있도록 설계되었습니다.
+
+| 원칙 | 의미 | Swift Testing 적용 |
+|---|---|---|
+| **빠름(Fast)** | 테스트는 밀리초 단위로 실행되어야 합니다. | 기본 병렬성에 의존하세요. `.serialized`는 드물게 사용하세요. |
+| **격리됨(Isolated)**| 테스트는 서로 의존하지 않아야 합니다. | Swift Testing은 모든 테스트에 대해 새로운 스위트 인스턴스를 생성하여 이를 강제합니다. 무작위 실행 순서는 위반을 발견하는 데 도움이 됩니다. |
+| **반복 가능(Repeatable)** | 테스트는 매번 같은 결과를 생성해야 합니다. | 모든 입력(날짜, 네트워크 응답)을 모의 객체/스텁으로 제어하세요. `init`/`deinit`에서 상태를 재설정하세요. |
+| **자체 검증(Self-Validating)**| 테스트는 자동으로 통과 또는 실패를 보고해야 합니다. | `#expect`와 `#require`를 사용하세요. 검증을 위해 `print()`에 의존하지 마세요. |
+| **적시에(Timely)**| 프로덕션 코드와 함께 테스트를 작성하세요. | 매개변수화된 테스트(`@Test(arguments:)`)를 사용하여 코드를 작성할 때 엣지 케이스를 쉽게 커버하세요. |

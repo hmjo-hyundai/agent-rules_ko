@@ -1,0 +1,290 @@
+---
+description: 문서화 및 테스트를 위한 자동화된 스크린샷 캡처를 위한 재사용 가능한 AppleScript 패턴
+globs: "**/*.applescript, **/screenshot-*.js"
+alwaysApply: false
+---
+
+# 스크린샷 자동화 가이드
+
+이 가이드는 애플리케이션의 자동화된 스크린샷 촬영을 위한 재사용 가능한 AppleScript 패턴을 제공하며, 특히 문서화, 테스트, 시각적 검증에 유용합니다.
+
+## 핵심 개념
+
+### 애플리케이션 식별
+
+애플리케이션은 여러 방법으로 식별할 수 있습니다:
+- **번들 ID**: 패키지된 앱에 가장 신뢰할 수 있음 (예: `com.company.AppName`)
+- **프로세스 이름**: 앱 이름과 다를 수 있음 (예: 개발 빌드의 "Electron")
+- **절대 경로**: 개발 빌드와 비표준 위치에 가장 신뢰할 수 있음
+
+### 기본 스크린샷 스크립트
+
+```applescript
+-- 앱 창의 무인 스크린샷을 촬영하는 스크립트
+-- appPath를 애플리케이션의 전체 경로로 설정
+
+try
+    -- 이를 애플리케이션의 전체 경로로 설정
+    set appPath to "/Applications/YourApp.app"
+    
+    -- 고유한 파일명을 위한 타임스탬프 생성
+    set currentDate to do shell script "date '+%Y-%m-%d_%H-%M-%S'"
+    set desktopPath to (path to desktop folder as text)
+    set posixDesktopPath to POSIX path of desktopPath
+    set screenshotPath to posixDesktopPath & "app_screenshot_" & currentDate & ".png"
+    
+    -- 경로에서 앱 이름 추출
+    set appName to do shell script "basename " & quoted form of appPath & " .app"
+    
+    -- 앱이 실행 중인지 확인하고 프로세스 이름 가져오기
+    set isRunning to false
+    set appProcessName to ""
+    
+    -- 먼저 번들 ID로 식별 시도
+    try
+        set appBundleID to do shell script "mdls -name kMDItemCFBundleIdentifier -raw " & quoted form of appPath
+        
+        tell application "System Events"
+            set allProcesses to every process
+            repeat with currentProcess in allProcesses
+                try
+                    if bundle identifier of currentProcess is appBundleID then
+                        set isRunning to true
+                        set appProcessName to name of currentProcess
+                        exit repeat
+                    end if
+                end try
+            end repeat
+        end tell
+    on error
+        -- 앱 이름 매칭으로 대체
+        set appProcessName to appName
+        tell application "System Events"
+            if exists process appProcessName then
+                set isRunning to true
+            end if
+        end tell
+    end try
+    
+    -- 실행 중이지 않으면 앱 실행
+    if not isRunning then
+        do shell script "open " & quoted form of appPath
+        delay 2 -- 앱 실행 대기
+        
+        -- 실행된 프로세스 식별
+        tell application "System Events"
+            set newProcesses to every process
+            repeat with currentProcess in newProcesses
+                try
+                    set processName to name of currentProcess
+                    if processName contains appName then
+                        set appProcessName to processName
+                        set isRunning to true
+                        exit repeat
+                    end if
+                end try
+            end repeat
+        end tell
+    end if
+    
+    -- 유효한 프로세스가 있는지 확인
+    if appProcessName is "" or not isRunning then
+        return "경로의 앱에 대한 프로세스 이름을 확인할 수 없습니다: " & appPath
+    end if
+    
+    -- 스크린샷 촬영
+    tell application "System Events"
+        tell process appProcessName
+            -- 전면으로 가져오기
+            try
+                set frontmost to true
+                delay 0.5 -- 전면으로 오는 시간 허용
+            on error errMsg
+                log "참고: " & appProcessName & "을(를) 전면으로 가져올 수 없습니다: " & errMsg
+            end try
+            
+            if (count of windows) > 0 then
+                set appWindow to window 1
+                set windowPosition to position of appWindow
+                set windowSize to size of appWindow
+                
+                set windowX to item 1 of windowPosition
+                set windowY to item 2 of windowPosition
+                set windowWidth to item 1 of windowSize
+                set windowHeight to item 2 of windowSize
+                
+                -- 크기 검증
+                if windowWidth is 0 or windowHeight is 0 then
+                    return "창의 크기가 0입니다"
+                end if
+                
+                delay 0.5 -- 창 준비를 위한 최종 대기
+                set regionString to windowX & "," & windowY & "," & windowWidth & "," & windowHeight
+                do shell script "screencapture -x -R" & regionString & " " & quoted form of screenshotPath
+                
+                return "스크린샷이 다음 위치에 저장되었습니다: " & screenshotPath
+            else
+                return appProcessName & "의 창을 찾을 수 없습니다"
+            end if
+        end tell
+    end tell
+on error errMsg
+    return "오류: " & errMsg
+end try
+```
+
+## 고급 패턴
+
+### 다중 창 스크린샷
+
+```applescript
+-- 애플리케이션의 모든 창 캡처
+tell application "System Events"
+    tell process "YourAppName"
+        set windowCount to count of windows
+        repeat with i from 1 to windowCount
+            set currentWindow to window i
+            -- 창 경계 가져오기 및 캡처
+            -- ... (여기에 스크린샷 코드)
+        end repeat
+    end tell
+end tell
+```
+
+### 특정 창 상태로 스크린샷
+
+```applescript
+-- 스크린샷 전에 창 준비
+tell application "System Events"
+    tell process appProcessName
+        -- 창 최대화
+        tell window 1
+            set size to {1920, 1080}
+            set position to {0, 0}
+        end tell
+        
+        -- 애니메이션 대기
+        delay 1
+        
+        -- 스크린샷 촬영
+        -- ... (여기에 스크린샷 코드)
+    end tell
+end tell
+```
+
+### 스크린샷 도구와의 통합
+
+고급 스크린샷 요구사항을 위해 전문 도구 사용을 고려하세요:
+
+1. **[Peekaboo](https://github.com/steipete/Peekaboo)** - 자동화된 스크린샷 도구
+   ```bash
+   # Peekaboo 설치
+   brew install steipete/formulae/peekaboo
+   
+   # AppleScript에서 사용
+   do shell script "peekaboo capture --app 'YourApp' --output ~/Desktop/screenshot.png"
+   ```
+
+2. **내장 macOS screencapture**
+   ```applescript
+   -- 그림자가 있는 창 스크린샷
+   do shell script "screencapture -w ~/Desktop/window.png"
+   
+   -- 대화형 선택
+   do shell script "screencapture -i ~/Desktop/selection.png"
+   
+   -- 전체 화면
+   do shell script "screencapture ~/Desktop/fullscreen.png"
+   ```
+
+## 모범 사례
+
+### 1. 오류 처리
+항상 스크린샷 작업을 try 블록으로 감싸세요:
+```applescript
+try
+    -- 스크린샷 작업
+on error errMsg number errNum
+    log "스크린샷 실패: " & errMsg & " (오류 " & errNum & ")"
+    -- 특정 오류 처리
+end try
+```
+
+### 2. 타이밍 고려사항
+- 앱 실행 시간 허용 (2-3초)
+- 창 포커스 후 짧은 지연 (0.5초)
+- 애니메이션이 많은 앱의 경우 더 긴 지연
+
+### 3. 프로세스 식별 전략
+```applescript
+-- 견고한 프로세스 식별
+on findProcess(appPath)
+    -- 먼저 번들 ID 시도
+    -- 이름 매칭으로 대체
+    -- 마지막으로 경로 매칭 시도
+    return processName
+end findProcess
+```
+
+### 4. 스크린샷 검증
+```applescript
+-- 스크린샷이 생성되었는지 확인
+set fileExists to do shell script "[ -f " & quoted form of screenshotPath & " ] && echo 'true' || echo 'false'"
+if fileExists is "true" then
+    -- 파일 크기를 확인하여 비어있지 않은지 확인
+    set fileSize to do shell script "stat -f%z " & quoted form of screenshotPath
+    if fileSize as integer > 0 then
+        return "스크린샷 성공"
+    end if
+end if
+```
+
+## 일반적인 문제 및 해결책
+
+### Electron/개발 앱
+개발 빌드는 종종 일반적인 이름으로 실행됩니다:
+```applescript
+-- 개발 중인 Electron 앱의 경우
+set appProcessName to "Electron"
+-- 창 제목으로 식별해야 할 수 있음
+tell application "System Events"
+    tell process "Electron"
+        set targetWindow to (first window whose title contains "YourAppName")
+    end tell
+end tell
+```
+
+### 권한 문제
+Terminal/Script Editor가 화면 녹화 권한을 가지고 있는지 확인하세요:
+- 시스템 환경설정 → 보안 및 개인정보 보호 → 개인정보 보호 → 화면 녹화
+
+### 레티나 디스플레이 처리
+레티나 디스플레이의 스크린샷은 네이티브 해상도로 캡처됩니다:
+```applescript
+-- 레티나 디스플레이의 스케일 인식
+set screenScale to do shell script "system_profiler SPDisplaysDataType | grep 'UI Looks like' | head -1 | grep -o '[0-9]*x[0-9]*' | cut -d'x' -f1"
+-- 필요한 경우 좌표 조정
+```
+
+## 통합 예시
+
+### CI/CD 시스템과의 통합
+```bash
+#!/bin/bash
+# ci-screenshot.sh
+osascript screenshot-script.applescript
+# 아티팩트 저장소에 업로드
+aws s3 cp ~/Desktop/app_screenshot_*.png s3://bucket/screenshots/
+```
+
+### 테스트 프레임워크와의 통합
+```applescript
+-- 테스트 검증을 위한 스크린샷 경로 반환
+on takeTestScreenshot(testName)
+    set screenshotPath to "/tmp/test_" & testName & ".png"
+    -- 스크린샷 촬영
+    return screenshotPath
+end takeTestScreenshot
+```
+
+이 가이드는 다양한 워크플로우와 도구에 통합할 수 있는 신뢰할 수 있는 자동화된 스크린샷 캡처를 위한 패턴을 제공합니다.

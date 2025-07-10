@@ -1,0 +1,134 @@
+---
+description: Automated setup for Peekaboo vision-enabled MCP server
+globs: ""
+alwaysApply: false
+---
+
+# MCP Peekaboo 설정
+
+이 규칙은 스크린샷 캡처와 AI 기반 비전 분석 기능을 제공하는 Peekaboo MCP 서버를 설정합니다.
+
+## 개요
+
+Peekaboo는 Claude가 다음과 같은 기능을 사용할 수 있도록 해주는 Model Context Protocol 서버입니다:
+- 화면 스크린샷 캡처
+- AI 비전 모델을 사용한 이미지 분석
+- OpenAI와 Ollama 제공자 모두 지원
+
+## 전제 조건
+
+- macOS 14.0+ (Sonoma 또는 이후 버전)
+- Node.js 20.0+
+- OpenAI API 키 (`~/.zshrc`에 저장)
+- 선택사항: 비전 모델이 설치된 Ollama
+
+## 구성
+
+Claude Desktop 구성 파일(`~/Library/Application Support/Claude/claude_desktop_config.json`)에 다음을 추가하세요:
+
+```json
+{
+  "mcpServers": {
+    "peekaboo": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@steipete/peekaboo-mcp"
+      ],
+      "env": {
+        "PEEKABOO_AI_PROVIDERS": "openai/gpt-4o,ollama/llava:latest",
+        "OPENAI_API_KEY": "<READ_FROM_ZSHRC>",
+        "PEEKABOO_LOG_LEVEL": "info",
+        "PEEKABOO_DEFAULT_SAVE_PATH": "~/Desktop"
+      }
+    }
+  }
+}
+```
+
+## 보안 설정
+
+`~/.zshrc`에서 OpenAI API 키를 안전하게 추출하려면:
+
+```bash
+# .zshrc에서 API 키 추출
+export OPENAI_API_KEY=$(grep "export OPENAI_API_KEY=" ~/.zshrc | cut -d'"' -f2)
+
+# 실제 키로 Claude 구성 업데이트
+jq --arg key "$OPENAI_API_KEY" \
+  '.mcpServers.peekaboo.env.OPENAI_API_KEY = $key' \
+  ~/Library/Application\ Support/Claude/claude_desktop_config.json > tmp.json && \
+  mv tmp.json ~/Library/Application\ Support/Claude/claude_desktop_config.json
+```
+
+## 사용 가능한 도구
+
+구성이 완료되면 다음 도구에 접근할 수 있습니다:
+
+1. **peekaboo_capture_screenshot**
+   - 전체 화면이나 특정 디스플레이의 스크린샷을 캡처합니다
+   - 기본 경로나 지정된 위치에 저장합니다
+
+2. **peekaboo_analyze_screenshot**
+   - 스크린샷을 캡처하고 AI로 분석합니다
+   - 비전 분석을 위해 구성된 AI 제공자를 사용합니다
+
+## 사용 예제
+
+### 기본 스크린샷
+```
+내 화면의 스크린샷을 찍어주세요
+```
+
+### 분석이 포함된 스크린샷
+```
+스크린샷을 찍고 현재 포커스된 애플리케이션이 무엇인지 알려주세요
+```
+
+### 다중 모니터 지원
+```
+디스플레이 2의 스크린샷을 찍어주세요
+```
+
+## 문제 해결
+
+1. **권한 문제**
+   - 터미널/Claude에 화면 녹화 권한을 부여하세요
+   - 시스템 환경설정 → 개인정보 보호 및 보안 → 화면 녹화
+
+2. **API 키 문제**
+   - `OPENAI_API_KEY`가 `~/.zshrc`에 설정되어 있는지 확인하세요
+   - 키가 유효하고 충분한 크레딧이 있는지 확인하세요
+
+3. **Ollama 연결**
+   - Ollama가 실행 중인지 확인하세요: `ollama serve`
+   - 비전 모델이 설치되어 있는지 확인하세요: `ollama pull llava:latest`
+
+## 제공자 구성
+
+### OpenAI만 사용
+```json
+"PEEKABOO_AI_PROVIDERS": "openai/gpt-4o"
+```
+
+### Ollama만 사용
+```json
+"PEEKABOO_AI_PROVIDERS": "ollama/llava:latest"
+```
+
+### 다중 제공자 (폴백)
+```json
+"PEEKABOO_AI_PROVIDERS": "openai/gpt-4o,ollama/llava:latest"
+```
+
+## 로그 레벨
+
+- `error`: 오류만
+- `warn`: 오류와 경고
+- `info`: 일반 정보 (기본값)
+- `debug`: 상세한 디버깅 정보
+
+## 관련 리소스
+
+- [Peekaboo MCP 저장소](https://github.com/steipete/peekaboo-mcp)
+- [Model Context Protocol 문서](https://modelcontextprotocol.io)

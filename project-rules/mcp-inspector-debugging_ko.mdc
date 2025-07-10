@@ -1,0 +1,101 @@
+---
+description: Playwright 자동화를 통한 MCP Inspector UI를 사용한 MCP 서버 디버깅 및 검증
+globs: "e2e/**/*.js, tests/**/*.js"
+alwaysApply: false
+---
+규칙 이름: mcp-inspector
+설명: MCP Inspector UI를 통한 MCP 서버 디버깅 및 검증. 이 규칙은 UI 자동화를 위한 Playwright, 서버 관리를 위한 iTerm, 로그 검사를 위한 Claude Code를 사용합니다.
+
+**참고:** 플레이스홀더를 특정 값으로 교체하세요:
+- `[MCP_SERVER_NAME]` - MCP 서버 이름
+- `[WORKSPACE_PATH]` - 프로젝트의 절대 경로
+- `[TEST_CREDENTIALS]` - 필요한 테스트 자격 증명
+- `[CONFIG_FILE]` - 구성 파일 경로
+- `[LOG_FILE]` - 로그 파일 경로
+
+로그를 읽으려면 `tail -n 100 /path/to/logfile.log`를 사용하세요.
+
+터미널 도구를 통해 차단 터미널 명령을 실행하지 마세요. 대신 AppleScript를 통해 Terminal 앱을 사용하세요.
+차단 작업 포함:
+- `node dist/index.js`
+- `npm run dev`
+- `npm start`
+
+다음은 괜찮습니다:
+마지막 X줄 가져오기: `tail -n 100 server.log`
+
+빌드를 검증하려면 `npm run build`를 실행하세요.
+
+MCP Inspector가 실패할 때 iTerm 로그를 확인하세요. 서비스의 오류가 표시될 수 있습니다.
+
+**필수 도구:**
+- `run_terminal_cmd` (전역 pkill 및 Inspector 시작 대체용)
+- `mcp_iterm-mcp_send_control_character`
+- `mcp_iterm-mcp_write_to_terminal`
+- `mcp_iterm-mcp_read_terminal_output`
+- `mcp_playwright_browser_navigate`
+- `mcp_playwright_browser_type`
+- `mcp_playwright_browser_click`
+- `mcp_playwright_browser_snapshot`
+- `mcp_playwright_browser_console_messages`
+- `mcp_playwright_browser_wait_for`
+- `mcp_claude-code_claude_code`
+
+**사용자 작업 공간 경로 플레이스홀더:**
+- 이 규칙의 `[WORKSPACE_PATH]`는 AI 어시스턴트가 사용자의 현재 프로젝트 작업 공간의 절대 경로(예: `<user_info>`에서)로 **반드시** 교체해야 합니다.
+
+---
+
+**1단계: MCP Inspector 서버 시작 (iTerm을 통해)**
+1.  **iTerm 지우기 및 기존 Inspector 프로세스 종료:**
+    *   액션: `mcp_iterm-mcp_send_control_character`, `letter`: `"C"`. (현재 iTerm 명령 중지).
+2.  **iTerm에서 새 Inspector 프로세스 시작:**
+    *   액션: `mcp_iterm-mcp_write_to_terminal`, `command`: `[ENV_VARS] npx @modelcontextprotocol/inspector ./start.sh`.
+    *   액션: `mcp_iterm-mcp_read_terminal_output`, `linesOfOutput`: `7` (또는 시작 메시지를 명확히 볼 수 있을 만큼).
+    *   확인: "MCP Inspector is up and running at http://127.0.0.1:6274"를 찾으세요. 프록시 포트를 기록하세요.
+3.  **Inspector UI 대기:** `mcp_playwright_browser_wait_for`, `time`: `3` (초).
+
+**2단계: Playwright를 통해 MCP 서버에 연결**
+1.  **Inspector 페이지 탐색/새로고침:**
+    *   액션: `mcp_playwright_browser_navigate`, `url`: `http://127.0.0.1:6274`.
+    *   예상: Inspector UI의 새로운 상태 보장.
+    *   스냅샷: 스냅샷 촬영.
+2.  **연결 양식 채우기:**
+    *   **명령 설정:** (스냅샷에서 "Command textbox"의 `ref` 얻기)
+        *   액션: `mcp_playwright_browser_type`, `text`: `[WORKSPACE_PATH]/start.sh`.
+    *   **인수 설정:** ("Arguments textbox"의 `ref` 얻기)
+        *   액션: `mcp_playwright_browser_type`, `text`: `""`.
+    *   **환경 변수: (inspector 호출에 추가하면 미리 채워짐)**
+        *   액션: "Environment Variables" 버튼 클릭 (`ref` 얻기)하여 현재 상태 확인. 스냅샷.
+환경 변수는 구성 파일에서 설정될 수 있습니다. 특정 테스트 실행에 대해 재정의하지 않는 한 UI 입력은 엄격하게 필요하지 않습니다.
+        *   (재정의가 필요한 경우, 예: `LOG_FILE_PATH=/tmp/custom-mcp-server.log`):
+            *   "Add Environment Variable" 버튼 클릭 (`ref` 얻기).
+            *   새 키 텍스트박스에 키 입력 (`ref` 얻기).
+            *   새 값 텍스트박스에 값 입력 (`ref` 얻기). 필요에 따라 반복.
+3.  **"Connect" 클릭:** (스냅샷에서 "Connect button"의 `ref` 얻기)
+    *   액션: `mcp_playwright_browser_click`.
+    *   스냅샷: 스냅샷 촬영.
+4.  **연결 확인:**
+    *   스냅샷 검사: 연결 상태 확인 (예: 서비스 `[MCP_SERVICE_NAME]` 표시).
+    *   연결 실패 시, Inspector UI의 "Error output from MCP server" 패널을 확인하세요. 이는 `start.sh`의 `stderr`을 보여줍니다.
+    *   중요하게도, `start.sh` 디버그 로그도 확인하세요: `mcp_claude-code_claude_code`, prompt: `"/tmp/[MCP_SERVER_NAME]_start_debug.log 읽기"`.
+    *   `start.sh` 로그가 `[MCP_SERVER_NAME]`을 실행하려 했지만 Inspector가 여전히 연결에 실패했다면, `[MCP_SERVER_NAME]`의 자체 로그를 확인하세요: `mcp_claude-code_claude_code`, prompt: `"[WORKSPACE_PATH]/[LOG_FILE] 읽기"`.
+
+**3단계: MCP 도구와 상호작용** (연결 성공 가정)
+1.  **서비스 목록/선택:** `[MCP_SERVICE_NAME]` 서비스 이름 클릭. 스냅샷.
+2.  **도구 선택:** 목록에서 원하는 도구 클릭. 스냅샷.
+3.  **도구 실행 (기본 매개변수):** 매개변수 필드는 비어있거나 `{}`이어야 합니다. "Run Tool" 클릭. 스냅샷.
+
+**4단계: 도구 실행 확인 및 출력 얻기**
+1.  **UI에서 결과 확인:** `items` 배열이 있는 JSON 결과에 대한 스냅샷 검사.
+2.  **출력 보고:** `items` 배열의 내용을 명확히 기술.
+3.  **MCP 서버 로그 확인:**
+    *   액션: `mcp_claude-code_claude_code`, `prompt`: `"[WORKSPACE_PATH]/[LOG_FILE]의 마지막 50줄 읽기"` (또는 구성된 경로).
+    *   찾을 것: 인증, 작업, 도구 실행과 관련된 로그.
+
+**문제 해결 참고사항 (통합):**
+- **작업 공간 경로:** `[WORKSPACE_PATH]`가 절대 경로로 올바르게 교체되었는지 확인하세요.
+- **`start.sh`:** 실행 가능해야 합니다. 자체 디버그 추적을 `/tmp/[MCP_SERVER_NAME]_start_debug.log`에 기록합니다. 실제 MCP 서버가 JSON-RPC 전송을 시작하기 전에 `stdout`이나 `stderr`에 출력해서는 **안 됩니다**. 이는 Inspector 파싱을 중단시킵니다.
+- **MCP 서버 로그:** MCP 서버 자체의 주요 로그는 `LOG_FILE_PATH`로 지정된 파일에 있습니다 (기본값은 `./[LOG_FILE]`, 프로젝트 루트에 있으며 `[CONFIG_FILE]`에 구성됨). `mcp_claude-code_claude_code`를 `tail -n 100 <path_to_log>` 또는 `Read <path_to_log>`와 함께 사용하세요.
+- **Inspector UI 오류:** Inspector의 "Error output from MCP server" 패널은 시작된 `start.sh` 프로세스의 `stderr`을 보여줍니다. 이는 `start.sh` 자체가 크게 실패하는 경우 유용합니다.
+- **Playwright 참조:** 상호작용을 위해 항상 *최신* 스냅샷의 참조를 사용하세요.

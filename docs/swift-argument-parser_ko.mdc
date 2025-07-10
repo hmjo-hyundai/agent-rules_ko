@@ -1,0 +1,392 @@
+---
+description: 명령줄 도구를 위한 Swift Argument Parser 문서 및 사용 패턴
+globs: "**/*.swift"
+alwaysApply: false
+---
+
+# https://swiftpackageindex.com/apple/swift-argument-parser/1.5.1/documentation/argumentparser llms-full.txt
+
+## Swift Argument Parser
+[네비게이션 건너뛰기](https://swiftpackageindex.com/apple/swift-argument-parser/1.5.1/documentation/argumentparser#app-main)
+
+프레임워크
+
+# ArgumentParser
+
+Swift를 위한 직관적이고 타입 안전한 인수 파싱.
+
+## [개요](https://swiftpackageindex.com/apple/swift-argument-parser/1.5.1/documentation/argumentparser\#Overview)
+
+`ArgumentParser`를 사용하면 간단한 Swift 타입을 선언하여 명령줄 인터페이스 도구를 만들 수 있습니다. 명령줄에서 수집해야 하는 정보를 정의하는 타입을 선언하는 것부터 시작하세요. 각 저장 프로퍼티를 `ArgumentParser`의 프로퍼티 래퍼 중 하나로 장식하고, [`ParsableCommand`](https://swiftpackageindex.com/apple/swift-argument-parser/1.5.1/documentation/argumentparser/parsablecommand)에 대한 준수를 선언한 다음, `run()` 메서드에서 명령의 로직을 구현합니다. `run`의 `async` 버전의 경우, 대신 [`AsyncParsableCommand`](https://swiftpackageindex.com/apple/swift-argument-parser/1.5.1/documentation/argumentparser/asyncparsablecommand) 준수를 선언하세요.
+
+```
+import ArgumentParser
+
+@main
+struct Repeat: ParsableCommand {
+    @Argument(help: "반복할 구문.")
+    var phrase: String
+
+    @Option(help: "'phrase'를 반복할 횟수.")
+    var count: Int? = nil
+
+    mutating func run() throws {
+        let repeatCount = count ?? 2
+        for _ in 0..<repeatCount {
+            print(phrase)
+        }
+    }
+}
+
+```
+
+사용자가 명령을 실행하면 `ArgumentParser` 라이브러리는 명령줄 인수를 파싱하고, 명령 타입을 인스턴스화한 다음, `run()` 메서드를 호출하거나 유용한 메시지와 함께 종료합니다.
+
+![위에서 선언된 Repeat 명령의 출력.](https://swiftpackageindex.com/apple/swift-argument-parser/1.5.1/images/ArgumentParser/repeat.png)
+
+#### [추가 리소스](https://swiftpackageindex.com/apple/swift-argument-parser/1.5.1/documentation/argumentparser\#Additional-Resources)
+
+- [GitHub의 `ArgumentParser`](https://github.com/apple/swift-argument-parser/)
+
+- [Swift 포럼의 `ArgumentParser`](https://forums.swift.org/c/related-projects/argumentparser/60)
+
+
+## [주제](https://swiftpackageindex.com/apple/swift-argument-parser/1.5.1/documentation/argumentparser\#topics)
+
+### [필수 사항](https://swiftpackageindex.com/apple/swift-argument-parser/1.5.1/documentation/argumentparser\#Essentials)
+
+[ArgumentParser 시작하기](https://swiftpackageindex.com/apple/swift-argument-parser/1.5.1/documentation/argumentparser/gettingstarted)
+
+간단한 명령줄 도구를 설정하고 사용자 정의하는 방법을 배웁니다.
+
+[`protocol ParsableCommand`](https://swiftpackageindex.com/apple/swift-argument-parser/1.5.1/documentation/argumentparser/parsablecommand)
+
+중첩된 명령 트리의 일부로 실행될 수 있는 타입.
+
+[`protocol AsyncParsableCommand`](https://swiftpackageindex.com/apple/swift-argument-parser/1.5.1/documentation/argumentparser/asyncparsablecommand)
+
+중첩된 명령 트리의 일부로 비동기적으로 실행될 수 있는 타입.
+
+[명령 및 하위 명령 정의](https://swiftpackageindex.com/apple/swift-argument-parser/1.5.1/documentation/argumentparser/commandsandsubcommands)
+
+복잡한 명령줄 도구를 하위 명령 트리로 나눕니다.
+
+[명령에 대한 도움말 사용자 정의](https://swiftpackageindex.com/apple/swift-argument-parser/1.5.1/documentation/argumentparser/customizingcommandhelp)
+
+명령의 개요, 확장 토론 또는 사용법 문자열을 정의하고, 도움말 표시를 호출하는 데 사용되는 플래그를 설정합니다.
+
+### [인수, 옵션 및 플래그](https://swiftpackageindex.com/apple/swift-argument-parser/1.5.1/documentation/argumentparser\#Arguments-Options-and-Flags)
+
+[인수, 옵션 및 플래그 선언](https://swiftpackageindex.com/apple/swift-argument-parser/1.5.1/documentation/argumentparser/declaringarguments)
+
+`@Argument`, `@Option` 및 `@Flag` 프로퍼티 래퍼를 사용하여 명령의 명령줄 인터페이스를 선언합니다.
+
+[`struct Argument`](https://swiftpackageindex.com/apple/swift-argument-parser/1.5.1/documentation/argumentparser/argument)
+
+위치 명령줄 인수를 나타내는 프로퍼티 래퍼.
+
+[`struct Option`](https://swiftpackageindex.com/apple/swift-argument-parser/1.5.1/documentation/argumentparser/option)
+
+명령줄 옵션을 나타내는 프로퍼티 래퍼.
+
+[`struct Flag`](https://swiftpackageindex.com/apple/swift-argument-parser/1.5.1/documentation/argumentparser/flag)
+
+명령줄 플래그를 나타내는 프로퍼티 래퍼.
+
+[`struct OptionGroup`](https://swiftpackageindex.com/apple/swift-argument-parser/1.5.1/documentation/argumentparser/optiongroup)
+
+파싱 가능한 타입을 투명하게 포함하는 래퍼.
+
+[`protocol ParsableArguments`](https://swiftpackageindex.com/apple/swift-argument-parser/1.5.1/documentation/argumentparser/parsablearguments)
+
+프로그램의 명령줄 인수에서 파싱될 수 있는 타입.
+
+### [프로퍼티 사용자 정의](https://swiftpackageindex.com/apple/swift-argument-parser/1.5.1/documentation/argumentparser\#Property-Customization)
+
+[도움말 사용자 정의](https://swiftpackageindex.com/apple/swift-argument-parser/1.5.1/documentation/argumentparser/customizinghelp)
+
+인수, 옵션 및 플래그에 대한 풍부한 도움말을 제공하여 사용자(그리고 자신)를 지원합니다.
+
+[`struct ArgumentHelp`](https://swiftpackageindex.com/apple/swift-argument-parser/1.5.1/documentation/argumentparser/argumenthelp)
+
+명령줄 인수에 대한 도움말 정보.
+
+[`struct ArgumentVisibility`](https://swiftpackageindex.com/apple/swift-argument-parser/1.5.1/documentation/argumentparser/argumentvisibility)
+
+인수 도움말의 가시성 수준.
+
+[`struct NameSpecification`](https://swiftpackageindex.com/apple/swift-argument-parser/1.5.1/documentation/argumentparser/namespecification)
+
+프로퍼티를 명령줄 인수 레이블로 나타내는 방법에 대한 사양.
+
+### [사용자 정의 타입](https://swiftpackageindex.com/apple/swift-argument-parser/1.5.1/documentation/argumentparser\#Custom-Types)
+
+[`protocol ExpressibleByArgument`](https://swiftpackageindex.com/apple/swift-argument-parser/1.5.1/documentation/argumentparser/expressiblebyargument)
+
+명령줄 인수로 표현될 수 있는 타입.
+
+[`protocol EnumerableFlag`](https://swiftpackageindex.com/apple/swift-argument-parser/1.5.1/documentation/argumentparser/enumerableflag)
+
+`@Flag` 프로퍼티에서 사용할 서로 다른 가능한 플래그를 나타내는 타입.
+
+### [검증 및 오류](https://swiftpackageindex.com/apple/swift-argument-parser/1.5.1/documentation/argumentparser\#Validation-and-Errors)
+
+[사용자 정의 검증 제공](https://swiftpackageindex.com/apple/swift-argument-parser/1.5.1/documentation/argumentparser/validation)
+
+문제가 발생했을 때 사용자에게 도움이 되는 피드백을 제공합니다.
+
+[`struct ValidationError`](https://swiftpackageindex.com/apple/swift-argument-parser/1.5.1/documentation/argumentparser/validationerror)
+
+명령줄 입력 파싱 오류로 사용자에게 표시되는 오류 타입.
+
+[`struct CleanExit`](https://swiftpackageindex.com/apple/swift-argument-parser/1.5.1/documentation/argumentparser/cleanexit)
+
+유틸리티의 깨끗한(즉, 비오류 상태) 종료를 나타내는 오류 타입.
+
+[`struct ExitCode`](https://swiftpackageindex.com/apple/swift-argument-parser/1.5.1/documentation/argumentparser/exitcode)
+
+종료 코드만 포함하는 오류 타입.
+
+### [셸 완성 스크립트](https://swiftpackageindex.com/apple/swift-argument-parser/1.5.1/documentation/argumentparser\#Shell-Completion-Scripts)
+
+[완성 스크립트 생성 및 설치](https://swiftpackageindex.com/apple/swift-argument-parser/1.5.1/documentation/argumentparser/installingcompletionscripts)
+
+명령줄 도구에서 생성된 셸 완성 스크립트를 설치합니다.
+
+[완성 사용자 정의](https://swiftpackageindex.com/apple/swift-argument-parser/1.5.1/documentation/argumentparser/customizingcompletions)
+
+명령줄 도구의 인수 및 옵션에 대한 사용자 정의 셸 완성을 제공합니다.
+
+[`struct CompletionKind`](https://swiftpackageindex.com/apple/swift-argument-parser/1.5.1/documentation/argumentparser/completionkind)
+
+인수 또는 옵션에 사용할 완성 타입.
+
+### [고급 주제](https://swiftpackageindex.com/apple/swift-argument-parser/1.5.1/documentation/argumentparser\#Advanced-Topics)
+
+[수동 파싱 및 테스팅](https://swiftpackageindex.com/apple/swift-argument-parser/1.5.1/documentation/argumentparser/manualparsing)
+
+자체 명령줄 입력 배열을 제공하거나 파싱된 명령줄 인수로 직접 작업합니다.
+
+[실험적 기능](https://swiftpackageindex.com/apple/swift-argument-parser/1.5.1/documentation/argumentparser/experimentalfeatures)
+
+ArgumentParser의 실험적 기능에 대해 알아봅니다.
+
+### [구조체](https://swiftpackageindex.com/apple/swift-argument-parser/1.5.1/documentation/argumentparser\#Structures)
+
+[`struct CommandGroup`](https://swiftpackageindex.com/apple/swift-argument-parser/1.5.1/documentation/argumentparser/commandgroup)
+
+공통 이름 아래 그룹화된 명령 집합.
+
+### [확장 모듈](https://swiftpackageindex.com/apple/swift-argument-parser/1.5.1/documentation/argumentparser\#Extended-Modules)
+
+[Swift](https://swiftpackageindex.com/apple/swift-argument-parser/1.5.1/documentation/argumentparser/swift)
+
+- [ArgumentParser](https://swiftpackageindex.com/apple/swift-argument-parser/1.5.1/documentation/argumentparser#app-top)
+- [개요](https://swiftpackageindex.com/apple/swift-argument-parser/1.5.1/documentation/argumentparser#Overview)
+- [주제](https://swiftpackageindex.com/apple/swift-argument-parser/1.5.1/documentation/argumentparser#topics)
+
+현재 페이지는 ArgumentParser입니다
+
+|
+|
+
+## 완성 사용자 정의
+[네비게이션 건너뛰기](https://swiftpackageindex.com/apple/swift-argument-parser/1.5.1/documentation/argumentparser/customizingcompletions#app-main)
+
+- [ArgumentParser](https://swiftpackageindex.com/apple/swift-argument-parser/1.5.1/documentation/argumentparser)
+- 완성 사용자 정의
+
+아티클
+
+# 완성 사용자 정의
+
+명령줄 도구의 인수 및 옵션에 대한 사용자 정의 셸 완성을 제공합니다.
+
+## [개요](https://swiftpackageindex.com/apple/swift-argument-parser/1.5.1/documentation/argumentparser/customizingcompletions\#Overview)
+
+`ArgumentParser`는 파싱할 수 있는 모든 타입에 대해 기본 완성을 제공합니다. 예를 들어, `CaseIterable` 타입인 `@Option` 프로퍼티는 자동으로 올바른 값을 완성 제안으로 가집니다.
+
+옵션이나 인수를 선언할 때 [`CompletionKind`](https://swiftpackageindex.com/apple/swift-argument-parser/1.5.1/documentation/argumentparser/completionkind)를 지정하여 제공되는 완성을 사용자 정의할 수 있습니다. 이 완성 종류를 사용하면 값이 파일, 디렉터리 또는 문자열 목록 중 하나여야 한다고 지정할 수 있습니다:
+
+```
+struct Example: ParsableCommand {
+    @Option(help: "읽을 파일.", completion: .file())
+    var input: String
+
+    @Option(help: "출력 디렉터리.", completion: .directory)
+    var outputDir: String
+
+    @Option(help: "선호하는 파일 형식.", completion: .list(["markdown", "rst"]))
+    var format: String
+
+    enum CompressionType: String, CaseIterable, ExpressibleByArgument {
+        case zip, gzip
+    }
+
+    @Option(help: "사용할 압축 타입.")
+    var compression: CompressionType
+}
+
+```
+
+생성된 완성 스크립트는 `--input` 옵션에는 파일 이름만, `--output-dir`에는 디렉터리 이름만, `--format`에는 `markdown`과 `rst` 문자열만 제안합니다. `--compression` 옵션은 `CaseIterable` 타입에 대한 기본 완성을 사용하므로 완성 스크립트는 `zip`과 `gzip`을 제안합니다.
+
+[`defaultCompletionKind`](https://swiftpackageindex.com/apple/swift-argument-parser/1.5.1/documentation/argumentparser/expressiblebyargument/defaultcompletionkind)를 구현하여 사용자 정의 [`ExpressibleByArgument`](https://swiftpackageindex.com/apple/swift-argument-parser/1.5.1/documentation/argumentparser/expressiblebyargument) 타입에 대한 기본 완성 종류를 정의할 수 있습니다. 예를 들어, 이 `File` 타입을 가진 모든 인수나 옵션은 자동으로 파일을 완성에 사용합니다:
+
+```
+struct File: Hashable, ExpressibleByArgument {
+    var path: String
+
+    init?(argument: String) {
+        self.path = argument
+    }
+
+    static var defaultCompletionKind: CompletionKind {
+        .file()
+    }
+}
+
+```
+
+제안된 완성에 대한 더 많은 제어를 위해 `.custom` 완성 종류를 사용하여 완성 중에 호출될 함수를 지정할 수 있습니다.
+
+```
+func listExecutables(_ arguments: [String]) -> [String] {
+    // 현재 디렉터리의 실행 파일 목록 생성
+}
+
+struct SwiftRun {
+    @Option(help: "실행할 타겟.", completion: .custom(listExecutables))
+    var target: String?
+}
+
+```
+
+이 예제에서 사용자가 `--target` 옵션에 대한 완성을 요청하면, 완성 스크립트는 특별한 구문으로 `SwiftRun` 명령줄 도구를 실행하여 지금까지 주어진 인수 배열과 함께 `listExecutables` 함수를 호출합니다.
+
+## [참고 항목](https://swiftpackageindex.com/apple/swift-argument-parser/1.5.1/documentation/argumentparser/customizingcompletions\#see-also)
+
+### [셸 완성 스크립트](https://swiftpackageindex.com/apple/swift-argument-parser/1.5.1/documentation/argumentparser/customizingcompletions\#Shell-Completion-Scripts)
+
+[완성 스크립트 생성 및 설치](https://swiftpackageindex.com/apple/swift-argument-parser/1.5.1/documentation/argumentparser/installingcompletionscripts)
+
+명령줄 도구에서 생성된 셸 완성 스크립트를 설치합니다.
+
+[`struct CompletionKind`](https://swiftpackageindex.com/apple/swift-argument-parser/1.5.1/documentation/argumentparser/completionkind)
+
+인수 또는 옵션에 사용할 완성 타입.
+
+- [완성 사용자 정의](https://swiftpackageindex.com/apple/swift-argument-parser/1.5.1/documentation/argumentparser/customizingcompletions#app-top)
+- [개요](https://swiftpackageindex.com/apple/swift-argument-parser/1.5.1/documentation/argumentparser/customizingcompletions#Overview)
+- [참고 항목](https://swiftpackageindex.com/apple/swift-argument-parser/1.5.1/documentation/argumentparser/customizingcompletions#see-also)
+
+현재 페이지는 완성 사용자 정의입니다
+
+|
+|
+
+## OptionGroup 개요
+[네비게이션 건너뛰기](https://swiftpackageindex.com/apple/swift-argument-parser/1.5.1/documentation/argumentparser/optiongroup#app-main)
+
+- [ArgumentParser](https://swiftpackageindex.com/apple/swift-argument-parser/1.5.1/documentation/argumentparser)
+- OptionGroup
+
+구조체
+
+# OptionGroup
+
+파싱 가능한 타입을 투명하게 포함하는 래퍼.
+
+```
+@propertyWrapper
+struct OptionGroup<Value> where Value : ParsableArguments
+```
+
+[OptionGroup.swift](https://github.com/apple/swift-argument-parser/blob/1.5.1/Sources/ArgumentParser/Parsable%20Properties/OptionGroup.swift#L34 "OptionGroup.swift 소스 파일 열기")
+
+## [개요](https://swiftpackageindex.com/apple/swift-argument-parser/1.5.1/documentation/argumentparser/optiongroup\#overview)
+
+옵션 그룹을 사용하여 파싱 가능한 타입에서 선언된 옵션, 플래그 또는 인수 그룹을 포함합니다.
+
+```
+struct GlobalOptions: ParsableArguments {
+    @Flag(name: .shortAndLong)
+    var verbose: Bool
+
+    @Argument var values: [Int]
+}
+
+struct Options: ParsableArguments {
+    @Option var name: String
+    @OptionGroup var globals: GlobalOptions
+}
+
+```
+
+`GlobalOptions`의 일부로 선언된 플래그와 위치 인수는 `Options`를 파싱할 때 포함됩니다.
+
+## [주제](https://swiftpackageindex.com/apple/swift-argument-parser/1.5.1/documentation/argumentparser/optiongroup\#topics)
+
+### [옵션 그룹 생성](https://swiftpackageindex.com/apple/swift-argument-parser/1.5.1/documentation/argumentparser/optiongroup\#Creating-an-Option-Group)
+
+[`init(title: String, visibility: ArgumentVisibility)`](https://swiftpackageindex.com/apple/swift-argument-parser/1.5.1/documentation/argumentparser/optiongroup/init(title:visibility:))
+
+지정된 제목과 가시성을 사용하여 다른 파싱 가능한 타입을 나타내는 프로퍼티를 생성합니다.
+
+### [옵션 그룹 프로퍼티](https://swiftpackageindex.com/apple/swift-argument-parser/1.5.1/documentation/argumentparser/optiongroup\#Option-Group-Properties)
+
+[`var title: String`](https://swiftpackageindex.com/apple/swift-argument-parser/1.5.1/documentation/argumentparser/optiongroup/title)
+
+이 옵션 그룹의 도움말 화면에서 사용할 제목.
+
+### [드물게 사용되는 API](https://swiftpackageindex.com/apple/swift-argument-parser/1.5.1/documentation/argumentparser/optiongroup\#Infrequently-Used-APIs)
+
+[`init()`](https://swiftpackageindex.com/apple/swift-argument-parser/1.5.1/documentation/argumentparser/optiongroup/init())
+
+다른 파싱 가능한 타입을 나타내는 프로퍼티를 생성합니다.
+
+사용 중단됨
+
+[`var wrappedValue: Value`](https://swiftpackageindex.com/apple/swift-argument-parser/1.5.1/documentation/argumentparser/optiongroup/wrappedvalue)
+
+이 프로퍼티 래퍼가 제시하는 값.
+
+[`var description: String`](https://swiftpackageindex.com/apple/swift-argument-parser/1.5.1/documentation/argumentparser/optiongroup/description)
+
+### [기본 구현](https://swiftpackageindex.com/apple/swift-argument-parser/1.5.1/documentation/argumentparser/optiongroup\#Default-Implementations)
+
+[API 레퍼런스\\
+CustomStringConvertible 구현](https://swiftpackageindex.com/apple/swift-argument-parser/1.5.1/documentation/argumentparser/optiongroup/customstringconvertible-implementations)
+
+## [관계](https://swiftpackageindex.com/apple/swift-argument-parser/1.5.1/documentation/argumentparser/optiongroup\#relationships)
+
+### [준수 대상](https://swiftpackageindex.com/apple/swift-argument-parser/1.5.1/documentation/argumentparser/optiongroup\#conforms-to)
+
+- `Swift.Copyable`
+- `Swift.CustomStringConvertible`
+- `Swift.Decodable`
+- `Swift.Sendable`
+
+## [참고 항목](https://swiftpackageindex.com/apple/swift-argument-parser/1.5.1/documentation/argumentparser/optiongroup\#see-also)
+
+### [인수, 옵션 및 플래그](https://swiftpackageindex.com/apple/swift-argument-parser/1.5.1/documentation/argumentparser/optiongroup\#Arguments-Options-and-Flags)
+
+[인수, 옵션 및 플래그 선언](https://swiftpackageindex.com/apple/swift-argument-parser/1.5.1/documentation/argumentparser/declaringarguments)
+
+`@Argument`, `@Option` 및 `@Flag` 프로퍼티 래퍼를 사용하여 명령의 명령줄 인터페이스를 선언합니다.
+
+[`struct Argument`](https://swiftpackageindex.com/apple/swift-argument-parser/1.5.1/documentation/argumentparser/argument)
+
+위치 명령줄 인수를 나타내는 프로퍼티 래퍼.
+
+[`struct Option`](https://swiftpackageindex.com/apple/swift-argument-parser/1.5.1/documentation/argumentparser/option)
+
+명령줄 옵션을 나타내는 프로퍼티 래퍼.
+
+[`struct Flag`](https://swiftpackageindex.com/apple/swift-argument-parser/1.5.1/documentation/argumentparser/flag)
+
+명령줄 플래그를 나타내는 프로퍼티 래퍼.
+
+[`protocol ParsableArguments`](https://swiftpackageindex.com/apple/swift-argument-parser/1.5.1/documentation/argumentparser/parsablearguments)
+
+프로그램의 명령줄 인수에서 파싱될 수 있는 타입.

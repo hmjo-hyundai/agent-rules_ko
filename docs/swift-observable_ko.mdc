@@ -1,0 +1,271 @@
+---
+description: SwiftUI 앱을 ObservableObject에서 @Observable 매크로로 업데이트하기 위한 마이그레이션 가이드
+globs: "**/*.swift"
+alwaysApply: false
+---
+
+Apple Developer 문서 페이지 "Observable Object 프로토콜에서 Observable 매크로로 마이그레이션"에서 Markdown 형식으로 변환된 내용입니다.
+
+# Observable Object 프로토콜에서 Observable 매크로로 마이그레이션
+
+Swift의 Observation 이점을 활용하도록 기존 앱을 업데이트합니다.
+
+***
+
+## 개요
+
+iOS 17, iPadOS 17, macOS 14, tvOS 17, watchOS 10부터 SwiftUI는 옵저버 디자인 패턴의 Swift 전용 구현인 Observation에 대한 지원을 제공합니다. Observation을 채택하면 앱에 다음과 같은 이점을 제공합니다:
+
+> *   `ObservableObject`를 사용할 때는 불가능한 옵셔널 및 객체 컬렉션 추적.
+> *   `StateObject` 및 `EnvironmentObject`와 같은 객체 기반 동등물 대신 `State` 및 `Environment`와 같은 기존 데이터 플로우 프리미티브 사용.
+> *   observable 객체에 발생하는 모든 프로퍼티 변경이 아닌 뷰의 body가 읽는 observable 프로퍼티 변경에 따른 뷰 업데이트로 앱 성능 향상에 도움.
+
+앱에서 이러한 이점을 활용하기 위해 `ObservableObject`에 의존하는 기존 소스 코드를 `@Observable()` 매크로를 활용하는 코드로 교체하는 방법을 알아보겠습니다.
+
+***
+
+## Observable 매크로 사용
+
+기존 앱에서 Observation을 채택하려면 데이터 모델 타입의 `ObservableObject`를 `@Observable()` 매크로로 교체하는 것부터 시작하세요. `@Observable()` 매크로는 컴파일 시점에 타입에 관찰 지원을 추가하는 소스 코드를 생성합니다.
+
+**이전**
+```swift
+// 이전
+import SwiftUI
+
+class Library: ObservableObject {
+    // ...
+}
+```
+
+**이후**
+```swift
+// 이후
+import SwiftUI
+
+@Observable
+class Library {
+    // ...
+}
+```
+
+그런 다음 observable 프로퍼티에서 `@Published` 프로퍼티 래퍼를 제거합니다. Observation은 프로퍼티를 observable하게 만들기 위해 프로퍼티 래퍼가 필요하지 않습니다. 대신 뷰와 같은 옵저버와의 관계에서 프로퍼티의 접근성이 프로퍼티가 observable한지 여부를 결정합니다.
+
+**이전**
+```swift
+// 이전
+@Observable
+class Library {
+    @Published var books: [Book] = [Book(), Book(), Book()]
+}
+```
+
+**이후**
+```swift
+// 이후
+@Observable
+class Library {
+    var books: [Book] = [Book(), Book(), Book()]
+}
+```
+
+옵저버에게 접근 가능하지만 추적하고 싶지 않은 프로퍼티가 있다면 해당 프로퍼티에 `@ObservationIgnored()` 매크로를 적용하세요.
+
+***
+
+## 점진적 마이그레이션
+
+앱 전체에서 `ObservableObject` 프로토콜을 전면적으로 교체할 필요는 없습니다. 대신 점진적으로 변경할 수 있습니다. 하나의 데이터 모델 타입을 `@Observable()` 매크로를 사용하도록 변경하는 것부터 시작하세요. 앱은 서로 다른 관찰 시스템을 사용하는 데이터 모델 타입을 혼합할 수 있습니다. 그러나 SwiftUI는 데이터 모델 타입이 사용하는 관찰 시스템(`Observable` 대 `ObservableObject`)에 따라 변경 사항을 다르게 추적합니다.
+
+추적 방법에 따라 앱에서 약간의 동작 차이를 느낄 수 있습니다. 예를 들어, `@Observable()`로 추적할 때 SwiftUI는 observable 프로퍼티가 변경되고 뷰의 body가 프로퍼티를 직접 읽을 때만 뷰를 업데이트합니다. body가 읽지 않는 observable 프로퍼티가 변경되어도 뷰는 업데이트되지 않습니다. 반대로 `ObservableObject`로 추적할 때는 뷰가 변경되는 프로퍼티를 읽지 않더라도 `ObservableObject` 인스턴스의 게시된 프로퍼티가 변경되면 뷰가 업데이트됩니다.
+
+> **참고:** observable 프로퍼티가 변경될 때 SwiftUI가 뷰를 업데이트하는 시점에 대해 자세히 알아보려면 [앱에서 모델 데이터 관리](https://developer.apple.com/documentation/swiftui/managing-model-data)를 참조하세요.
+
+***
+
+## 다른 소스 코드 마이그레이션
+
+`@Observable()` 매크로를 적용한 후 데이터 플로우 프리미티브를 업데이트할 수 있습니다. `StateObject`와 `EnvironmentObject`는 점진적 마이그레이션을 위해 `@Observable()` 매크로를 사용하는 타입을 지원하지만, Observation을 완전히 채택하려면 이들을 `State`와 `Environment`로 교체해야 합니다.
+
+**이전**
+```swift
+// 이전
+@main
+struct BookReaderApp: App {
+    @StateObject private var library = Library()
+
+    var body: some Scene {
+        WindowGroup {
+            LibraryView()
+                .environmentObject(library)
+        }
+    }
+}
+```
+
+**이후**
+```swift
+// 이후
+@main
+struct BookReaderApp: App {
+    @State private var library = Library()
+
+    var body: some Scene {
+        WindowGroup {
+            LibraryView()
+                .environment(library)
+        }
+    }
+}
+```
+
+마찬가지로 `@EnvironmentObject`를 `@Environment` 프로퍼티 래퍼로 교체합니다.
+
+**이전**
+```swift
+// 이전
+struct LibraryView: View {
+    @EnvironmentObject var library: Library
+
+    var body: some View {
+        List(library.books) { book in
+            BookView(book: book)
+        }
+    }
+}
+```
+
+**이후**
+```swift
+// 이후
+struct LibraryView: View {
+    @Environment(Library.self) private var library
+
+    var body: some View {
+        List(library.books) { book in
+            BookView(book: book)
+        }
+    }
+}
+```
+
+***
+
+## ObservedObject 프로퍼티 래퍼 제거
+
+마이그레이션을 완료하려면 다른 데이터 모델 타입을 `ObservableObject`를 `@Observable()` 매크로로 교체하고 `@Published`를 제거하여 Observation을 지원하도록 변경합니다.
+
+**이전**
+```swift
+// 이전
+class Book: ObservableObject, Identifiable {
+    @Published var title = "샘플 책 제목"
+    let id = UUID() // 변경되지 않는 고유 식별자.
+}
+```
+
+**이후**
+```swift
+// 이후
+@Observable
+class Book: Identifiable {
+    var title = "샘플 책 제목"
+    let id = UUID() // 변경되지 않는 고유 식별자.
+}
+```
+
+다음으로 `@ObservedObject` 프로퍼티 래퍼를 제거합니다. SwiftUI는 뷰의 body가 직접 읽는 모든 observable 프로퍼티를 자동으로 추적합니다.
+
+**이전**
+```swift
+// 이전
+struct BookView: View {
+    @ObservedObject var book: Book
+    @State private var isEditorPresented = false
+
+    var body: some View {
+        HStack {
+            Text(book.title)
+            Spacer()
+            Button("편집") {
+                isEditorPresented = true
+            }
+        }
+        .sheet(isPresented: $isEditorPresented) {
+            BookEditView(book: book)
+        }
+    }
+}
+```
+
+**이후**
+```swift
+// 이후
+struct BookView: View {
+    var book: Book
+    @State private var isEditorPresented = false
+
+    var body: some View {
+        HStack {
+            Text(book.title)
+            Spacer()
+            Button("편집") {
+                isEditorPresented = true
+            }
+        }
+        .sheet(isPresented: $isEditorPresented) {
+            BookEditView(book: book)
+        }
+    }
+}
+```
+
+뷰가 observable 타입에 대한 바인딩이 필요한 경우 `@ObservedObject`를 `@Bindable` 프로퍼티 래퍼로 교체합니다.
+
+**이전**
+```swift
+// 이전
+struct BookEditView: View {
+    @ObservedObject var book: Book
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        VStack() {
+            TextField("제목", text: $book.title)
+                .textFieldStyle(.roundedBorder)
+                .onSubmit {
+                    dismiss()
+                }
+            Button("닫기") {
+                dismiss()
+            }
+            .buttonStyle(.borderedProminent)
+        }
+        .padding()
+    }
+}
+```
+
+**이후**
+```swift
+// 이후
+struct BookEditView: View {
+    @Bindable var book: Book
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        VStack() {
+            TextField("제목", text: $book.title)
+                .textFieldStyle(.roundedBorder)
+                .onSubmit {
+                    dismiss()
+                }
+            Button("닫기") {
+                dismiss()
+            }
+            .buttonStyle(.borderedProminent)
+        }
+        .padding()
+    }
+}
+```

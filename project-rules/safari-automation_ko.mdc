@@ -1,0 +1,203 @@
+---
+description: 웹 UI 자동화 및 테스트를 위한 Safari 브라우저 상호작용 자동화 패턴 및 모범 사례
+globs: "**/*.applescript, **/safari-*.js"
+alwaysApply: false
+---
+
+# Safari 자동화 가이드
+
+이 가이드는 Safari 상호작용 자동화, 특히 웹 UI 자동화 및 테스트에서 얻은 값진 교훈을 담고 있습니다.
+
+## 핵심 개념
+
+### Safari 윈도우 및 탭 관리
+
+**목표:** Safari를 예측 가능한 방식으로 특정 URL로 안정적으로 지시하며, 가급적 단일하고 일관된 브라우저 윈도우와 탭을 사용합니다.
+
+**권장 접근법:**
+```applescript
+tell application "Safari"
+  activate
+  delay 0.2 -- Safari가 최전면 애플리케이션이 되도록 허용
+  if (count of windows) is 0 then
+    -- Safari 윈도우가 열려있지 않으므로 새로 만듭니다.
+    make new document with properties {URL:"http://example.com"}
+  else
+    -- Safari에 열린 윈도우가 있으므로 최전면 윈도우를 사용합니다.
+    tell front window
+      set targetTab to missing value
+      try
+        -- 대상 URL에 대한 탭이 이미 열려있는지 확인
+        set targetTab to (first tab whose URL starts with "http://example.com")
+      end try
+      
+      if targetTab is not missing value then
+        -- 기존 탭 재사용: 새로고침하고 활성화
+        set URL of targetTab to "http://example.com"
+        set current tab to targetTab
+      else
+        -- 특정 탭을 찾지 못함: 현재 활성 탭 사용
+        set URL of current tab to "http://example.com"
+      end if
+    end tell
+  end if
+  delay 1 -- 페이지 로딩이 시작되도록 대기
+end tell
+```
+
+### AppleScript에서 JavaScript 실행
+
+**문자열 이스케이프 전략:**
+
+1. **이스케이프된 따옴표 사용:**
+   ```applescript
+   do JavaScript "document.querySelector('[data-testid=\\'my-button\\']').click();"
+   ```
+
+2. **복잡한 문자열에 character id 39 사용:**
+   ```applescript
+   set sQuote to character id 39
+   set jsSelector to "[data-testid=" & sQuote & "my-button" & sQuote & "]"
+   set jsCommand to "document.querySelector(" & sQuote & jsSelector & sQuote & ").click();"
+   do JavaScript jsCommand in front document
+   ```
+
+3. **견고한 요소 선택을 위한 XPath:**
+   ```applescript
+   -- 특정 텍스트가 포함된 버튼 찾기
+   set jsCommand to "document.evaluate(\"//button[.//text()='Connect']\", document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue.click();"
+   do JavaScript jsCommand in front document
+   ```
+
+### Shadow DOM 상호작용
+
+**Shadow DOM 내 요소 접근:**
+```javascript
+// AppleScript를 통해 실행할 JavaScript
+function findInShadowDOM(selector) {
+  // shadow root를 포함하여 검색하는 헬퍼 함수
+  function searchShadowDOM(root, selector) {
+    const el = root.querySelector(selector);
+    if (el) return el;
+    
+    // shadow root에서 검색
+    const allElements = root.querySelectorAll('*');
+    for (const element of allElements) {
+      if (element.shadowRoot) {
+        const found = searchShadowDOM(element.shadowRoot, selector);
+        if (found) return found;
+      }
+    }
+    return null;
+  }
+  
+  return searchShadowDOM(document, selector);
+}
+
+// 사용 예시
+const button = findInShadowDOM('button.my-shadow-button');
+if (button) button.click();
+```
+
+### 타이밍 및 동기화
+
+**전략적 vs 전술적 지연:**
+
+1. **전략적 지연 (중요):** 외부 프로세스 실행 후
+   - 웹 서버 시작 후 5-10초 지연 사용
+   - 상호작용 전에 서비스가 완전히 초기화되도록 허용
+
+2. **전술적 지연 (종종 피할 수 있음):** UI 자동화 내에서
+   - UI 액션 간 작은 지연 (0.2-1초)
+   - 애플리케이션이 반응적이면 종종 제거 가능
+
+**검증 패턴:**
+```applescript
+-- 액션 실행
+do JavaScript "document.querySelector('button').click();" in front document
+
+-- 대기하고 결과 확인
+delay 2
+set pageText to do JavaScript "document.body.innerText" in front document
+if pageText contains "Success" then
+  -- 액션이 성공적으로 완료됨
+else
+  -- 실패 케이스 처리
+end if
+```
+
+## 모범 사례
+
+1. **항상 Safari를 먼저 활성화**
+   - 자동화 전에 Safari가 최전면에 있도록 보장
+   - 잘못된 애플리케이션과의 상호작용 방지
+
+2. **복원력을 위한 Try 블록 사용**
+   ```applescript
+   try
+     -- 자동화 코드
+   on error errMsg
+     display dialog "Automation failed: " & errMsg
+   end try
+   ```
+
+3. **디버깅을 위한 반환값**
+   ```applescript
+   set elementFound to do JavaScript "return document.querySelector('.my-class') !== null;"
+   if elementFound then
+     -- 요소가 존재하므로 진행
+   end if
+   ```
+
+4. **동적 콘텐츠 처리**
+   - 텍스트 기반 선택을 위한 XPath 사용
+   - 비동기 콘텐츠를 위한 재시도 로직 구현
+   - 컴포넌트 기반 UI를 위한 Shadow DOM 고려
+
+## 일반적인 함정
+
+1. **따옴표 이스케이프 문제**
+   - AppleScript 파싱 오류 (-2741)는 종종 따옴표 문제를 나타냄
+   - 복잡한 문자열에 `character id 39` 기법 사용
+
+2. **타이밍 문제**
+   - 페이지 로드 후 불충분한 지연
+   - 비동기 작업 완료를 기다리지 않음
+
+3. **Shadow DOM 맹점**
+   - 표준 선택자로는 shadow DOM 요소를 찾을 수 없음
+   - 전문 순회 함수가 필요함
+
+4. **프로세스 식별**
+   - 앱의 프로세스 이름이 예상과 다를 수 있음
+   - 가능하면 번들 식별자 사용
+
+## 다른 도구와의 통합
+
+### 터미널 통합
+```applescript
+-- 예시: Safari 자동화 전에 웹 서버 시작
+tell application "Terminal"
+  activate
+  do script "cd /path/to/project && npm start"
+end tell
+delay 5 -- 서버 시작을 위한 전략적 지연
+
+-- 그 후 Safari 자동화 진행
+```
+
+### 스크린샷 캡처
+```applescript
+-- 자동화 후 Safari 윈도우 캡처
+tell application "System Events"
+  tell process "Safari"
+    set frontWindow to window 1
+    set {xPosition, yPosition} to position of frontWindow
+    set {windowWidth, windowHeight} to size of frontWindow
+  end tell
+end tell
+
+do shell script "screencapture -R" & xPosition & "," & yPosition & "," & windowWidth & "," & windowHeight & " ~/Desktop/safari-result.png"
+```
+
+이 가이드는 다양한 웹 테스트 및 자동화 시나리오에 적용할 수 있는 Safari 자동화를 위한 재사용 가능한 패턴을 제공합니다.

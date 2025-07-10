@@ -1,0 +1,35 @@
+# 정리
+
+전체 코드베이스의 모든 코드 포맷팅 및 품질 이슈를 수정합니다.
+
+## Python 프로젝트:
+모든 `black`, `isort`, `flake8`, `mypy` 이슈 수정
+
+### 단계:
+1. **Black으로 포맷팅**: `black .`
+2. **isort로 import 정렬**: `isort .`
+3. **flake8 이슈 수정**: `flake8 . --extend-ignore=E203`
+4. **mypy 타입 오류 해결**: `mypy .`
+
+## JavaScript/TypeScript 프로젝트:
+모든 ESLint, Prettier, TypeScript 이슈 수정
+
+### 단계:
+1. **Prettier로 포맷팅**: `npx prettier --write .`
+2. **ESLint 이슈 수정**: `npx eslint . --fix`
+3. **TypeScript 검사**: `npx tsc --noEmit`
+
+## 일반적인 프로세스:
+1. 자동화된 포맷터 먼저 실행
+2. 남은 린팅 이슈 수동으로 수정
+3. 타입 검사 오류 해결
+4. 모든 도구가 오류 없이 통과하는지 확인
+5. 커밋하기 전에 변경사항 검토
+
+## 일반적인 이슈:
+- 도구 간 import 순서 충돌
+- 라인 길이 제한 위반
+- 사용되지 않는 import/변수
+- 타입 어노테이션 요구사항
+- 누락된 반환 타입
+- 일관되지 않는 따옴표/세미콜론

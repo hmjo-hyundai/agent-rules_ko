@@ -1,0 +1,53 @@
+---
+description: 일관성과 효과성을 보장하기 위한 Cursor 규칙 생성 및 유지 가이드라인.
+globs: .cursor/rules/*.mdc
+alwaysApply: true
+---
+
+- **필수 규칙 구조:**
+  ```markdown
+  ---
+  description: 규칙이 적용하는 내용에 대한 명확한 한 줄 설명
+  globs: path/to/files/*.ext, other/path/**/*
+  alwaysApply: boolean
+  ---
+
+  - **굵은 글씨로 주요 요점**
+    - 세부사항이 있는 하위 요점
+    - 예시와 설명
+  ```
+
+- **파일 참조:**
+  - `[filename](mdc:path/to/file)` ([filename](mdc:filename)) 형식으로 파일 참조
+  - 예시: [prisma.mdc](mdc:.cursor/rules/prisma.mdc) 규칙 참조용
+  - 예시: [schema.prisma](mdc:prisma/schema.prisma) 코드 참조용
+
+- **코드 예시:**
+  - 언어별 코드 블록 사용
+  ```typescript
+  // ✅ 해야 할 것: 좋은 예시 보여주기
+  const goodExample = true;
+  
+  // ❌ 하지 말아야 할 것: 안티 패턴 보여주기
+  const badExample = false;
+  ```
+
+- **규칙 내용 가이드라인:**
+  - 높은 수준의 개요로 시작
+  - 구체적이고 실행 가능한 요구사항 포함
+  - 올바른 구현 예시 보여주기
+  - 가능한 경우 기존 코드 참조
+  - 다른 규칙을 참조하여 규칙을 DRY하게 유지
+
+- **규칙 유지보수:**
+  - 새로운 패턴이 나타나면 규칙 업데이트
+  - 실제 코드베이스에서 예시 추가
+  - 구식 패턴 제거
+  - 관련 규칙 상호 참조
+
+- **모범 사례:**
+  - 명확성을 위해 불릿 포인트 사용
+  - 설명을 간결하게 유지
+  - 해야 할 것과 하지 말아야 할 것 예시 모두 포함
+  - 이론적 예시보다 실제 코드 참조
+  - 규칙 전반에 걸쳐 일관된 형식 사용
