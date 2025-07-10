@@ -8,58 +8,58 @@ Claude Code와 Cursor 같은 AI 코딩 어시스턴트를 위한 재사용 가�
 개발 중 AI 어시스턴트가 따라야 할 실행 가능한 규칙들:
 
 **개발 워크플로우** (크레딧: [@vincenthopf](https://github.com/vincenthopf/claude-code))
-- **[commit.mdc](./project-rules/commit.mdc)** - 컨벤셔널 포맷과 이모지를 사용한 표준 커밋
-- **[commit-fast.mdc](./project-rules/commit-fast.mdc)** - 첫 번째 메시지를 자동 선택하는 빠른 커밋 워크플로우
-- **[add-to-changelog.mdc](./project-rules/add-to-changelog.mdc)** - Keep a Changelog 형식을 따르는 구조화된 변경로그 업데이트
-- **[pr-review.mdc](./project-rules/pr-review.mdc)** - 다중 역할 풀 리퀘스트 리뷰 체크리스트
+- **[commit_ko.mdc](./project-rules/commit_ko.mdc)** - 컨벤셔널 포맷과 이모지를 사용한 표준 커밋
+- **[commit-fast_ko.mdc](./project-rules/commit-fast_ko.mdc)** - 첫 번째 메시지를 자동 선택하는 빠른 커밋 워크플로우
+- **[add-to-changelog_ko.mdc](./project-rules/add-to-changelog_ko.mdc)** - Keep a Changelog 형식을 따르는 구조화된 변경로그 업데이트
+- **[pr-review_ko.mdc](./project-rules/pr-review_ko.mdc)** - 다중 역할 풀 리퀘스트 리뷰 체크리스트
 
 **코드 품질 & 분석**
-- **[check.mdc](./project-rules/check.mdc)** - 다양한 언어에 대한 포괄적인 코드 품질 검사
-- **[clean.mdc](./project-rules/clean.mdc)** - 모든 포맷팅 및 린팅 이슈 수정
-- **[code-analysis.mdc](./project-rules/code-analysis.mdc)** - 고급 다면적 코드 분석 옵션
+- **[check_ko.mdc](./project-rules/check_ko.mdc)** - 다양한 언어에 대한 포괄적인 코드 품질 검사
+- **[clean_ko.mdc](./project-rules/clean_ko.mdc)** - 모든 포맷팅 및 린팅 이슈 수정
+- **[code-analysis_ko.mdc](./project-rules/code-analysis_ko.mdc)** - 고급 다면적 코드 분석 옵션
 
 **문제 해결 & 구현**
-- **[analyze-issue.mdc](./project-rules/analyze-issue.mdc)** - GitHub 이슈 분석 및 구현 명세
-- **[bug-fix.mdc](./project-rules/bug-fix.mdc)** - 이슈부터 PR까지 완전한 버그 수정 워크플로우
-- **[implement-task.mdc](./project-rules/implement-task.mdc)** - 체계적인 작업 구현 접근법
-- **[five.mdc](./project-rules/five.mdc)** - 5가지 Why 근본 원인 분석 기법
+- **[analyze-issue_ko.mdc](./project-rules/analyze-issue_ko.mdc)** - GitHub 이슈 분석 및 구현 명세
+- **[bug-fix_ko.mdc](./project-rules/bug-fix_ko.mdc)** - 이슈부터 PR까지 완전한 버그 수정 워크플로우
+- **[implement-task_ko.mdc](./project-rules/implement-task_ko.mdc)** - 체계적인 작업 구현 접근법
+- **[five_ko.mdc](./project-rules/five_ko.mdc)** - 5가지 Why 근본 원인 분석 기법
 
 **문서화 & 시각화**
-- **[create-docs.mdc](./project-rules/create-docs.mdc)** - 포괄적인 문서 생성
-- **[mermaid.mdc](./project-rules/mermaid.mdc)** - 다양한 시각화를 위한 Mermaid 다이어그램 생성
+- **[create-docs_ko.mdc](./project-rules/create-docs_ko.mdc)** - 포괄적인 문서 생성
+- **[mermaid_ko.mdc](./project-rules/mermaid_ko.mdc)** - 다양한 시각화를 위한 Mermaid 다이어그램 생성
 
 **프로젝트 설정 & 메타**
-- **[context-prime.mdc](./project-rules/context-prime.mdc)** - 프로젝트 컨텍스트 포괄적 로딩
-- **[create-command.mdc](./project-rules/create-command.mdc)** - 새로운 사용자 정의 명령 생성 가이드
-- **[continuous-improvement.mdc](./project-rules/continuous-improvement.mdc)** - AI 어시스턴트 규칙 개선을 위한 체계적 접근법
-- **[cursor-rules-meta-guide.mdc](./project-rules/cursor-rules-meta-guide.mdc)** - Cursor 규칙 생성 및 유지보수 가이드라인
+- **[context-prime_ko.mdc](./project-rules/context-prime_ko.mdc)** - 프로젝트 컨텍스트 포괄적 로딩
+- **[create-command_ko.mdc](./project-rules/create-command_ko.mdc)** - 새로운 사용자 정의 명령 생성 가이드
+- **[continuous-improvement_ko.mdc](./project-rules/continuous-improvement_ko.mdc)** - AI 어시스턴트 규칙 개선을 위한 체계적 접근법
+- **[cursor-rules-meta-guide_ko.mdc](./project-rules/cursor-rules-meta-guide_ko.mdc)** - Cursor 규칙 생성 및 유지보수 가이드라인
 
 **자동화 & 통합**
-- **[mcp-inspector-debugging.mdc](./project-rules/mcp-inspector-debugging.mdc)** - Inspector UI로 MCP 서버 디버깅
-- **[safari-automation.mdc](./project-rules/safari-automation.mdc)** - 고급 Safari 브라우저 자동화 기법
-- **[screenshot-automation.mdc](./project-rules/screenshot-automation.mdc)** - 자동화된 스크린샷을 위한 AppleScript 패턴
+- **[mcp-inspector-debugging_ko.mdc](./project-rules/mcp-inspector-debugging_ko.mdc)** - Inspector UI로 MCP 서버 디버깅
+- **[safari-automation_ko.mdc](./project-rules/safari-automation_ko.mdc)** - 고급 Safari 브라우저 자동화 기법
+- **[screenshot-automation_ko.mdc](./project-rules/screenshot-automation_ko.mdc)** - 자동화된 스크린샷을 위한 AppleScript 패턴
 
 **언어별**
-- **[modern-swift.mdc](./project-rules/modern-swift.mdc)** - Apple의 최신 모범 사례를 따르는 모던 SwiftUI 아키텍처 ([Dimillian의 "Forget MVVM"](https://dimillian.medium.com/swiftui-in-2025-forget-mvvm-262ff2bbd2ed)에서 영감을 받음)
+- **[modern-swift_ko.mdc](./project-rules/modern-swift_ko.mdc)** - Apple의 최신 모범 사례를 따르는 모던 SwiftUI 아키텍처 ([Dimillian의 "Forget MVVM"](https://dimillian.medium.com/swiftui-in-2025-forget-mvvm-262ff2bbd2ed)에서 영감을 받음)
 
 ### 📁 docs/
 참조 문서 및 지식 베이스:
 - **Swift 개발**
-  - [swift-observable.mdc](./docs/swift-observable.mdc) - ObservableObject에서 @Observable 매크로로의 마이그레이션 가이드
-  - [swift-observation.mdc](./docs/swift-observation.mdc) - Swift Observation 프레임워크 문서
-  - [swift-testing-api.mdc](./docs/swift-testing-api.mdc) - Swift Testing 프레임워크 API 참조
-  - [swift-testing-playbook.mdc](./docs/swift-testing-playbook.mdc) - Swift Testing으로 마이그레이션하기 위한 포괄적 가이드
-  - [swift-argument-parser.mdc](./docs/swift-argument-parser.mdc) - Swift Argument Parser 프레임워크 문서
-  - [swift6-migration.mdc](./docs/swift6-migration.mdc) - 동시성과 함께 Swift 6로 마이그레이션하는 가이드
+  - [swift-observable_ko.mdc](./docs/swift-observable_ko.mdc) - ObservableObject에서 @Observable 매크로로의 마이그레이션 가이드
+  - [swift-observation_ko.mdc](./docs/swift-observation_ko.mdc) - Swift Observation 프레임워크 문서
+  - [swift-testing-api_ko.mdc](./docs/swift-testing-api_ko.mdc) - Swift Testing 프레임워크 API 참조
+  - [swift-testing-playbook_ko.mdc](./docs/swift-testing-playbook_ko.mdc) - Swift Testing으로 마이그레이션하기 위한 포괄적 가이드
+  - [swift-argument-parser_ko.mdc](./docs/swift-argument-parser_ko.mdc) - Swift Argument Parser 프레임워크 문서
+  - [swift6-migration_ko.mdc](./docs/swift6-migration_ko.mdc) - 동시성과 함께 Swift 6로 마이그레이션하는 가이드
 
 - **MCP 개발**
-  - [mcp-best-practices.mdc](./docs/mcp-best-practices.mdc) - Model Context Protocol 서버 구축 모범 사례
-  - [mcp-releasing.mdc](./docs/mcp-releasing.mdc) - MCP 서버를 NPM 패키지로 릴리스하는 가이드
+  - [mcp-best-practices_ko.mdc](./docs/mcp-best-practices_ko.mdc) - Model Context Protocol 서버 구축 모범 사례
+  - [mcp-releasing_ko.mdc](./docs/mcp-releasing_ko.mdc) - MCP 서버를 NPM 패키지로 릴리스하는 가이드
 
 ### 📁 global-rules/
 글로벌 Claude Code 설정 및 자동화 스크립트 (`~/.claude/CLAUDE.md`에 배치):
-- **[github-issue-creation.mdc](./global-rules/github-issue-creation.mdc)** - 잘 구조화된 GitHub 이슈 생성 (크레딧: [@nityeshaga](https://x.com/nityeshaga/status/1933113428379574367))
-- **[mcp-peekaboo-setup.mdc](./global-rules/mcp-peekaboo-setup.mdc)** - 비전 지원 Peekaboo MCP 서버 설정 가이드
+- **[github-issue-creation_ko.mdc](./global-rules/github-issue-creation_ko.mdc)** - 잘 구조화된 GitHub 이슈 생성 (크레딧: [@nityeshaga](https://x.com/nityeshaga/status/1933113428379574367))
+- **[mcp-peekaboo-setup_ko.mdc](./global-rules/mcp-peekaboo-setup_ko.mdc)** - 비전 지원 Peekaboo MCP 서버 설정 가이드
 - **[terminal-title-wrapper.zsh](./global-rules/terminal-title-wrapper.zsh)** - 동적 터미널 제목을 위한 ZSH 래퍼
 - **[mcp-sync.sh](./global-rules/mcp-sync.sh)** - Claude 설치 간 MCP 서버 동기화 스크립트
 - **[mcp-sync-rule.md](./global-rules/mcp-sync-rule.md)** - MCP 동기화 기능에 대한 문서
