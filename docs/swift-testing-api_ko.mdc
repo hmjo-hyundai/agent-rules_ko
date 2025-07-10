@@ -1,0 +1,1988 @@
+---
+description: Swift 패키지에서 테스트를 생성하고 실행하기 위한 Swift 테스팅 프레임워크 API 문서
+globs: "**/*Tests.swift, **/*Test.swift"
+alwaysApply: false
+---
+
+# https://developer.apple.com/documentation/testing llms-full.txt
+
+## Swift 테스팅 개요
+[탐색 건너뛰기](https://developer.apple.com/documentation/testing#app-main)
+
+프레임워크
+
+# Swift 테스팅
+
+Swift 패키지 및 Xcode 프로젝트에 대한 테스트를 생성하고 실행합니다.
+
+Swift 6.0+Xcode 16.0+
+
+## [개요](https://developer.apple.com/documentation/testing#Overview)
+
+![함수, 숫자, 태그, 체크마크 다이아몬드 기호가 포함된 파란색 그라데이션 배경의 Swift 로고.](https://docs-assets.developer.apple.com/published/bb0ec39fe3198b15d431887aac09a527/swift-testing-hero%402x.png)
+
+Swift 테스팅을 사용하면 Swift 프로그래밍 언어의 강력하고 표현력 있는 기능을 활용하여 더 적은 코드로 더 자신 있게 테스트를 개발할 수 있습니다. 이 라이브러리는 Swift 패키지 관리자 테스트 워크플로와 원활하게 통합되며, 유연한 테스트 구성, 사용자 정의 가능한 메타데이터 및 확장 가능한 테스트 실행을 지원합니다.
+
+- 단일 속성으로 거의 모든 곳에서 테스트 함수를 정의합니다.
+- Swift의 타입 시스템을 사용하여 관련 테스트를 계층 구조로 그룹화합니다.
+- Swift 동시성과 원활하게 통합됩니다.
+- 광범위한 입력에 걸쳐 테스트 함수를 매개변수화합니다.
+- 런타임 조건에 따라 동적으로 테스트를 활성화합니다.
+- 프로세스 내에서 테스트를 병렬화합니다.
+- 태그를 사용하여 테스트를 분류합니다.
+- 버그 수정 사항을 확인하거나 문제를 재현하는 테스트와 버그를 직접 연결합니다.
+
+
+#### [관련 비디오](https://developer.apple.com/documentation/testing#Related-videos)
+
+![](https://devimages-cdn.apple.com/wwdc-services/images/C03E6E6D-A32A-41D0-9E50-C3C6059820AA/E94A25C1-8734-483C-A4C1-862533C307AC/9309_wide_250x141_3x.jpg)
+
+Swift 테스팅 만나기](https://developer.apple.com/videos/play/wwdc2024/10179)
+
+![](https://devimages-cdn.apple.com/wwdc-services/images/C03E6E6D-A32A-41D0-9E50-C3C6059820AA/52DB5AB3-48AF-40E1-98C7-CCC9132EDD39/9325_wide_250x141_3x.jpg)
+
+Swift 테스팅 더 알아보기](https://developer.apple.com/videos/play/wwdc2024/10195)
+
+## [주제](https://developer.apple.com/documentation/testing#topics)
+
+### [필수 요소](https://developer.apple.com/documentation/testing#Essentials)
+
+[테스트 함수 정의하기](https://developer.apple.com/documentation/testing/definingtests)
+
+코드가 올바르게 작동하는지 확인하기 위해 테스트 함수를 정의합니다.
+
+[스위트 타입으로 테스트 함수 구성하기](https://developer.apple.com/documentation/testing/organizingtests)
+
+테스트를 테스트 스위트로 구성합니다.
+
+[XCTest에서 테스트 마이그레이션하기](https://developer.apple.com/documentation/testing/migratingfromxctest)
+
+XCTest를 사용하여 작성된 기존 테스트 메서드 또는 테스트 클래스를 마이그레이션합니다.
+
+[`macro Test(String?, any TestTrait...)`](https://developer.apple.com/documentation/testing/test(_:_:))
+
+테스트를 선언합니다.
+
+[`struct Test`](https://developer.apple.com/documentation/testing/test)
+
+테스트 또는 스위트를 나타내는 타입입니다.
+
+[`macro Suite(String?, any SuiteTrait...)`](https://developer.apple.com/documentation/testing/suite(_:_:))
+
+테스트 스위트를 선언합니다.
+
+### [테스트 매개변수화](https://developer.apple.com/documentation/testing#Test-parameterization)
+
+[매개변수화된 테스트 구현하기](https://developer.apple.com/documentation/testing/parameterizedtesting)
+
+테스트 함수에서 여러 테스트 케이스를 생성하기 위해 다른 입력 매개변수를 지정합니다.
+
+[`macro Test<C>(String?, any TestTrait..., arguments: C)`](https://developer.apple.com/documentation/testing/test(_:_:arguments:)-8kn7a)
+
+값의 컬렉션에 대해 매개변수화된 테스트를 선언합니다.
+
+[`macro Test<C1, C2>(String?, any TestTrait..., arguments: C1, C2)`](https://developer.apple.com/documentation/testing/test(_:_:arguments:_:))
+
+두 개의 값 컬렉션에 대해 매개변수화된 테스트를 선언합니다.
+
+[`macro Test<C1, C2>(String?, any TestTrait..., arguments: Zip2Sequence<C1, C2>)`](https://developer.apple.com/documentation/testing/test(_:_:arguments:)-3rzok)
+
+두 개의 압축된 값 컬렉션에 대해 매개변수화된 테스트를 선언합니다.
+
+[`protocol CustomTestArgumentEncodable`](https://developer.apple.com/documentation/testing/customtestargumentencodable)
+
+매개변수화된 테스트에 전달된 인수를 인코딩하는 방법을 사용자 정의하기 위한 프로토콜로, 특정 인수를 실행할 때 일치시키는 데 사용됩니다.
+
+[`struct Case`](https://developer.apple.com/documentation/testing/test/case)
+
+매개변수화된 [`Test`](https://developer.apple.com/documentation/testing/test)의 단일 테스트 케이스입니다.
+
+### [동작 검증](https://developer.apple.com/documentation/testing#Behavior-validation)
+
+[API 참조
+기대 및 확인](https://developer.apple.com/documentation/testing/expectations)
+
+테스트에서 예상 값, 결과 및 비동기 이벤트를 확인합니다.
+
+[API 참조
+알려진 문제](https://developer.apple.com/documentation/testing/known-issues)
+
+테스트 실행 시 알려진 문제를 강조 표시합니다.
+
+### [테스트 사용자 정의](https://developer.apple.com/documentation/testing#Test-customization)
+
+[API 참조
+특성](https://developer.apple.com/documentation/testing/traits)
+
+테스트 함수와 스위트에 주석을 달고 동작을 사용자 정의합니다.
+
+현재 페이지는 Swift 테스팅입니다.
+
+## 테스트에 태그 추가하기
+[탐색 건너뛰기](https://developer.apple.com/documentation/testing/addingtags#app-main)
+
+- [Swift 테스팅](https://developer.apple.com/documentation/testing)
+- [특성](https://developer.apple.com/documentation/testing/traits)
+- 테스트에 태그 추가하기
+
+기사
+
+# 테스트에 태그 추가하기
+
+구성, 필터링 및 모양 사용자 정의를 위한 의미 정보를 제공하기 위해 태그를 사용합니다.
+
+## [개요](https://developer.apple.com/documentation/testing/addingtags#Overview)
+
+복잡한 패키지나 프로젝트에는 수백 또는 수천 개의 테스트와 스위트가 포함될 수 있습니다. 이러한 테스트의 일부 하위 집합은 _중요_하거나 _불안정_한 것과 같은 공통된 측면을 공유할 수 있습니다. 테스팅 라이브러리에는 테스트를 그룹화하고 분류하기 위해 추가할 수 있는 _태그_라는 유형의 특성이 포함되어 있습니다.
+
+태그는 테스트 스위트와 다릅니다. 테스트 스위트는 소스 수준에서 테스트 함수에 구조를 부과하는 반면, 태그는 테스트 스위트, 소스 파일 및 테스트 대상을 넘어 다른 여러 테스트와 공유할 수 있는 테스트에 대한 의미 정보를 제공합니다.
+
+## [태그 추가](https://developer.apple.com/documentation/testing/addingtags#Add-a-tag)
+
+테스트에 태그를 추가하려면 [`tags(_:)`](https://developer.apple.com/documentation/testing/trait/tags(_:)) 특성을 사용합니다. 이 특성은 태그 시퀀스를 인수로 사용하며, 해당 태그는 런타임에 해당 테스트에 적용됩니다. 테스트 스위트에 태그가 적용되면 해당 스위트의 모든 테스트가 해당 태그를 상속합니다.
+
+테스팅 라이브러리는 태그에 의미론적 의미를 부여하지 않으며, 태그의 유무는 테스팅 라이브러리가 테스트를 실행하는 방식에 영향을 미치지 않습니다.
+
+태그 자체는 [`Tag`](https://developer.apple.com/documentation/testing/tag)의 인스턴스이며 [`Tag`](https://developer.apple.com/documentation/testing/tag)의 정적 멤버로 선언된 명명된 상수로 표현됩니다. 명명된 상수 태그를 선언하려면 [`Tag()`](https://developer.apple.com/documentation/testing/tag()) 매크로를 사용합니다.
+
+```
+extension Tag {
+  @Tag static var legallyRequired: Self
+}
+
+@Test("공급업체 라이선스가 유효합니다", .tags(.legallyRequired))
+func licenseValid() { ... }
+
+```
+
+위 예제의 `legallyRequired`와 같이 동일한 이름의 두 태그가 다른 파일, 모듈 또는 다른 컨텍스트에서 선언된 경우 테스팅 라이브러리는 이를 동일하게 처리합니다.
+
+패키지나 프로젝트(또는 해당 종속성)의 다른 곳에서 선언된 유사한 태그와 구별하는 것이 중요한 경우 역방향 DNS 명명을 사용하여 태그에 대한 고유한 Swift 심볼 이름을 만듭니다.
+
+```
+extension Tag {
+  enum com_example_foodtruck {}
+}
+
+extension Tag.com_example_foodtruck {
+  @Tag static var extraSpecial: Tag
+}
+
+@Test(
+  "특별 소스 레시피는 비밀입니다",
+  .tags(.com_example_foodtruck.extraSpecial)
+)
+func secretSauce() { ... }
+
+```
+
+### [태그를 선언할 수 있는 위치](https://developer.apple.com/documentation/testing/addingtags#Where-tags-can-be-declared)
+
+태그는 항상 해당 타입의 확장 또는 [`Tag`](https://developer.apple.com/documentation/testing/tag) 내에 중첩된 타입에서 [`Tag`](https://developer.apple.com/documentation/testing/tag)의 멤버로 선언되어야 합니다. 두 번째 이름으로 태그를 다시 선언해도 효과가 없으며 추가 이름은 테스팅 라이브러리에서 인식되지 않습니다. 다음 예제는 지원되지 않습니다.
+
+```
+extension Tag {
+  @Tag static var legallyRequired: Self // ✅ 정상: 새 태그 선언.
+
+  static var requiredByLaw: Self { // ❌ 오류: 이 태그 이름은
+                                   // 런타임에 인식되지 않습니다.
+    legallyRequired
+  }
+}
+
+```
+
+태그가 [`Tag`](https://developer.apple.com/documentation/testing/tag) 타입의 확장 외부(예: 파일의 루트 또는 다른 관련 없는 타입 선언)에서 명명된 상수로 선언된 경우 테스트 함수나 테스트 스위트에 적용할 수 없습니다. 다음 선언은 지원되지 않습니다.
+
+```
+@Tag let needsKetchup: Self // ❌ 오류: 태그는 Tag의 확장에서
+                            // 선언해야 합니다.
+struct Food {
+  @Tag var needsMustard: Self // ❌ 오류: 태그는 Tag의 확장에서
+                              // 선언해야 합니다.
+}
+
+```
+
+## [참고 항목](https://developer.apple.com/documentation/testing/addingtags#see-also)
+
+### [테스트에 주석 달기](https://developer.apple.com/documentation/testing/addingtags#Annotating-tests)
+
+[테스트에 주석 추가하기](https://developer.apple.com/documentation/testing/addingcomments)
+
+테스트에 대한 유용한 정보를 제공하기 위해 주석을 추가합니다.
+
+[테스트와 버그 연관시키기](https://developer.apple.com/documentation/testing/associatingbugs)
+
+테스트에서 발견되거나 확인된 버그를 연관시킵니다.
+
+[버그 식별자 해석하기](https://developer.apple.com/documentation/testing/bugidentifiers)
+
+개발자가 제공한 버그 식별자를 테스팅 라이브러리가 어떻게 해석하는지 살펴봅니다.
+
+[`macro Tag()`](https://developer.apple.com/documentation/testing/tag())
+
+테스트 함수나 테스트 스위트에 적용할 수 있는 태그를 선언합니다.
+
+[`static func bug(String, Comment?) -> Self`](https://developer.apple.com/documentation/testing/trait/bug(_:_:))
+
+테스트와 함께 추적할 버그를 구성합니다.
+
+[`static func bug(String?, id: String, Comment?) -> Self`](https://developer.apple.com/documentation/testing/trait/bug(_:id:_:)-10yf5)
+
+테스트와 함께 추적할 버그를 구성합니다.
+
+[`static func bug(String?, id: some Numeric, Comment?) -> Self`](https://developer.apple.com/documentation/testing/trait/bug(_:id:_:)-3vtpl)
+
+테스트와 함께 추적할 버그를 구성합니다.
+
+현재 페이지는 테스트에 태그 추가하기입니다.
+
+## Swift 테스트 개요
+[탐색 건너뛰기](https://developer.apple.com/documentation/testing/test#app-main)
+
+- [Swift 테스팅](https://developer.apple.com/documentation/testing)
+- 테스트
+
+구조체
+
+# 테스트
+
+테스트 또는 스위트를 나타내는 타입입니다.
+
+iOSiPadOSMac CatalystmacOStvOSvisionOSwatchOSSwift 6.0+Xcode 16.0+
+
+```
+struct Test
+```
+
+## [개요](https://developer.apple.com/documentation/testing/test#overview)
+
+이 타입의 인스턴스는 다음을 나타낼 수 있습니다.
+
+- 0개 이상의 테스트를 포함하는 타입(즉, _테스트 스위트_)
+- 개별 테스트 함수(타입 내에 포함될 수 있음)
+- 하나 이상의 입력 시퀀스에 대해 매개변수화된 테스트 함수
+
+
+이 타입의 두 인스턴스는 [`id`](https://developer.apple.com/documentation/testing/test/id-swift.property) 속성 값이 같으면 동일한 것으로 간주됩니다.
+
+## [주제](https://developer.apple.com/documentation/testing/test#topics)
+
+### [구조체](https://developer.apple.com/documentation/testing/test#Structures)
+
+[`struct Case`](https://developer.apple.com/documentation/testing/test/case)
+
+매개변수화된 [`Test`](https://developer.apple.com/documentation/testing/test)의 단일 테스트 케이스입니다.
+
+### [인스턴스 속성](https://developer.apple.com/documentation/testing/test#Instance-Properties)
+
+[`var associatedBugs: [Bug]`](https://developer.apple.com/documentation/testing/test/associatedbugs)
+
+이 테스트와 관련된 버그 집합입니다.
+
+[`var comments: [Comment]`](https://developer.apple.com/documentation/testing/test/comments)
+
+모든 특성에서 이 테스트에 대한 전체 주석 집합입니다.
+
+[`var displayName: String?`](https://developer.apple.com/documentation/testing/test/displayname)
+
+지정된 경우 이 인스턴스의 사용자 정의 표시 이름입니다.
+
+[`var isParameterized: Bool`](https://developer.apple.com/documentation/testing/test/isparameterized)
+
+이 테스트가 매개변수화되었는지 여부입니다.
+
+[`var isSuite: Bool`](https://developer.apple.com/documentation/testing/test/issuite)
+
+이 인스턴스가 다른 테스트를 포함하는 테스트 스위트인지 여부입니다.
+
+[`var name: String`](https://developer.apple.com/documentation/testing/test/name)
+
+이 인스턴스의 이름입니다.
+
+[`var sourceLocation: SourceLocation`](https://developer.apple.com/documentation/testing/test/sourcelocation)
+
+이 테스트의 소스 위치입니다.
+
+[`var tags: Set<Tag>`](https://developer.apple.com/documentation/testing/test/tags)
+
+이 테스트와 관련된 전체 고유 태그 집합입니다.
+
+[`var timeLimit: Duration?`](https://developer.apple.com/documentation/testing/test/timelimit)
+
+이 테스트의 케이스가 실행될 수 있는 최대 시간입니다.
+
+[`var traits: [any Trait]`](https://developer.apple.com/documentation/testing/test/traits)
+
+이 인스턴스가 초기화될 때 추가된 특성 집합입니다.
+
+### [타입 속성](https://developer.apple.com/documentation/testing/test#Type-Properties)
+
+[`static var current: Test?`](https://developer.apple.com/documentation/testing/test/current)
+
+현재 작업에서 실행 중인 테스트(있는 경우)입니다.
+
+### [기본 구현](https://developer.apple.com/documentation/testing/test#Default-Implementations)
+
+[API 참조
+Equatable 구현](https://developer.apple.com/documentation/testing/test/equatable-implementations)
+
+[API 참조
+Hashable 구현](https://developer.apple.com/documentation/testing/test/hashable-implementations)
+
+[API 참조
+Identifiable 구현](https://developer.apple.com/documentation/testing/test/identifiable-implementations)
+
+## [관계](https://developer.apple.com/documentation/testing/test#relationships)
+
+### [준수 대상](https://developer.apple.com/documentation/testing/test#conforms-to)
+
+- [`Copyable`](https://developer.apple.com/documentation/Swift/Copyable)
+- [`Equatable`](https://developer.apple.com/documentation/Swift/Equatable)
+- [`Hashable`](https://developer.apple.com/documentation/Swift/Hashable)
+- [`Identifiable`](https://developer.apple.com/documentation/Swift/Identifiable)
+- [`Sendable`](https://developer.apple.com/documentation/Swift/Sendable)
+
+## [참고 항목](https://developer.apple.com/documentation/testing/test#see-also)
+
+### [필수 요소](https://developer.apple.com/documentation/testing/test#Essentials)
+
+[테스트 함수 정의하기](https://developer.apple.com/documentation/testing/definingtests)
+
+코드가 올바르게 작동하는지 확인하기 위해 테스트 함수를 정의합니다.
+
+[스위트 타입으로 테스트 함수 구성하기](https://developer.apple.com/documentation/testing/organizingtests)
+
+테스트를 테스트 스위트로 구성합니다.
+
+[XCTest에서 테스트 마이그레이션하기](https://developer.apple.com/documentation/testing/migratingfromxctest)
+
+XCTest를 사용하여 작성된 기존 테스트 메서드 또는 테스트 클래스를 마이그레이션합니다.
+
+[`macro Test(String?, any TestTrait...)`](https://developer.apple.com/documentation/testing/test(_:_:))
+
+테스트를 선언합니다.
+
+[`macro Suite(String?, any SuiteTrait...)`](https://developer.apple.com/documentation/testing/suite(_:_:))
+
+테스트 스위트를 선언합니다.
+
+현재 페이지는 테스트입니다.
+
+## 테스트에 주석 추가하기
+[탐색 건너뛰기](https://developer.apple.com/documentation/testing/addingcomments#app-main)
+
+- [Swift 테스팅](https://developer.apple.com/documentation/testing)
+- [특성](https://developer.apple.com/documentation/testing/traits)
+- 테스트에 주석 추가하기
+
+기사
+
+# 테스트에 주석 추가하기
+
+테스트에 대한 유용한 정보를 제공하기 위해 주석을 추가합니다.
+
+## [개요](https://developer.apple.com/documentation/testing/addingcomments#Overview)
+
+코드에 주석을 추가하는 것은 종종 유용합니다.
+
+- 코드의 목적에 대한 컨텍스트 또는 배경 정보 제공
+- 복잡한 코드가 구현된 방식 설명
+- 문제 진단 시 도움이 될 수 있는 세부 정보 포함
+
+
+테스트 코드도 다르지 않으며 설명적인 코드 주석의 이점을 누릴 수 있지만, 종종 테스트 문제는 지속적인 통합(CI) 인터페이스나 로그 파일과 같이 테스트의 소스 코드를 사용할 수 없는 곳에 표시됩니다.
+
+이러한 컨텍스트에서 테스트와 관련된 주석을 보면 문제를 더 빨리 진단하는 데 도움이 될 수 있습니다. 테스트 선언에 주석을 추가할 수 있으며, 테스팅 라이브러리는 문제가 기록될 때 자동으로 캡처하여 표시합니다.
+
+## [테스트에 코드 주석 추가하기](https://developer.apple.com/documentation/testing/addingcomments#Add-a-code-comment-to-a-test)
+
+테스트나 스위트에 주석을 포함하려면 `@Test` 또는 `@Suite` 속성 바로 앞에 일반적인 Swift 코드 주석을 작성합니다.
+
+```
+// 표준 점심 메뉴에 타코가 포함되어 있다고 가정합니다.
+@Test func lunchMenu() {
+  let foodTruck = FoodTruck(
+    menu: .lunch,
+    ingredients: [.tortillas, .cheese]
+  )
+  #expect(foodTruck.menu.contains { $0 is Taco })
+}
+
+```
+
+`// 표준 점심 메뉴에 타코가 포함되어 있다고 가정합니다.`라는 주석이 테스트에 추가됩니다.
+
+다음 언어 주석 스타일이 지원됩니다.
+
+| 구문 | 스타일 |
+| --- | --- |
+| `// ...` | 한 줄 주석 |
+| `/// ...` | 문서 한 줄 주석 |
+| `/* ... */` | 블록 주석 |
+| `/** ... */` | 문서 블록 주석 |
+
+### [주석 서식](https://developer.apple.com/documentation/testing/addingcomments#Comment-formatting)
+
+소스 코드 주석에서 자동으로 추가되는 테스트 주석은 `//` 또는 `/**`와 같은 접두사를 포함하여 원래 서식을 유지합니다. 이는 주석의 공백과 서식이 일부 상황에서 의미가 있거나 주석을 이해하는 데 도움이 될 수 있기 때문입니다. 예를 들어 주석에 예제 코드 조각이나 다이어그램이 포함된 경우입니다.
+
+## [테스트 주석 효과적으로 사용하기](https://developer.apple.com/documentation/testing/addingcomments#Use-test-comments-effectively)
+
+일반 코드에서와 마찬가지로 테스트에 대한 주석은 일반적으로 다음과 같은 경우에 가장 유용합니다.
+
+- 코드를 읽는 것만으로는 명확하지 않은 정보 추가
+- 테스트의 작동 또는 동기에 대한 유용한 정보 제공
+
+
+테스트가 버그나 문제와 관련된 경우 주석 대신 [`Bug`](https://developer.apple.com/documentation/testing/bug) 특성을 사용하는 것을 고려하십시오. 자세한 내용은 [테스트와 버그 연관시키기](https://developer.apple.com/documentation/testing/associatingbugs)를 참조하십시오.
+
+## [참고 항목](https://developer.apple.com/documentation/testing/addingcomments#see-also)
+
+### [테스트에 주석 달기](https://developer.apple.com/documentation/testing/addingcomments#Annotating-tests)
+
+[테스트에 태그 추가하기](https://developer.apple.com/documentation/testing/addingtags)
+
+구성, 필터링 및 모양 사용자 정의를 위한 의미 정보를 제공하기 위해 태그를 사용합니다.
+
+[테스트와 버그 연관시키기](https://developer.apple.com/documentation/testing/associatingbugs)
+
+테스트에서 발견되거나 확인된 버그를 연관시킵니다.
+
+[버그 식별자 해석하기](https://developer.apple.com/documentation/testing/bugidentifiers)
+
+개발자가 제공한 버그 식별자를 테스팅 라이브러리가 어떻게 해석하는지 살펴봅니다.
+
+[`macro Tag()`](https://developer.apple.com/documentation/testing/tag())
+
+테스트 함수나 테스트 스위트에 적용할 수 있는 태그를 선언합니다.
+
+[`static func bug(String, Comment?) -> Self`](https://developer.apple.com/documentation/testing/trait/bug(_:_:))
+
+테스트와 함께 추적할 버그를 구성합니다.
+
+[`static func bug(String?, id: String, Comment?) -> Self`](https://developer.apple.com/documentation/testing/trait/bug(_:id:_:)-10yf5)
+
+테스트와 함께 추적할 버그를 구성합니다.
+
+[`static func bug(String?, id: some Numeric, Comment?) -> Self`](https://developer.apple.com/documentation/testing/trait/bug(_:id:_:)-3vtpl)
+
+테스트와 함께 추적할 버그를 구성합니다.
+
+현재 페이지는 테스트에 주석 추가하기입니다.
+
+## 테스트 함수 구성하기
+[탐색 건너뛰기](https://developer.apple.com/documentation/testing/organizingtests#app-main)
+
+- [Swift 테스팅](https://developer.apple.com/documentation/testing)
+- 스위트 타입으로 테스트 함수 구성하기
+
+기사
+
+# 스위트 타입으로 테스트 함수 구성하기
+
+테스트를 테스트 스위트로 구성합니다.
+
+## [개요](https://developer.apple.com/documentation/testing/organizingtests#Overview)
+
+많은 테스트 함수로 작업할 때 테스트 스위트로 구성하는 것이 도움이 될 수 있습니다.
+
+테스트 함수는 다음 두 가지 방법 중 하나로 테스트 스위트에 추가할 수 있습니다.
+
+- Swift 타입에 배치하여.
+- Swift 타입에 배치하고 해당 타입을 `@Suite` 속성으로 주석 처리하여.
+
+
+`@Suite` 속성은 테스팅 라이브러리가 타입에 테스트 함수가 포함되어 있음을 인식하는 데 필요하지 않지만, 추가하면 IDE 및 명령줄에서 테스트 스위트의 모양을 사용자 정의할 수 있습니다. [`tags(_:)`](https://developer.apple.com/documentation/testing/trait/tags(_:)) 또는 [`disabled(_:sourceLocation:)`](https://developer.apple.com/documentation/testing/trait/disabled(_:sourcelocation:))와 같은 특성이 테스트 스위트에 적용되면 스위트에 포함된 테스트에 자동으로 상속됩니다.
+
+테스트 함수 및 Swift 타입이 포함할 수 있는 다른 멤버를 포함하는 것 외에도 테스트 스위트 타입에는 내부에 중첩된 추가 테스트 스위트가 포함될 수 있습니다. 중첩된 테스트 스위트 타입을 추가하려면 외부 테스트 스위트 타입의 범위 내에 추가 타입을 선언하기만 하면 됩니다.
+
+기본적으로 스위트 내에 포함된 테스트는 서로 병렬로 실행됩니다. 테스트 병렬화에 대한 자세한 내용은 [테스트를 직렬 또는 병렬로 실행하기](https://developer.apple.com/documentation/testing/parallelization)를 참조하십시오.
+
+### [스위트 이름 사용자 정의하기](https://developer.apple.com/documentation/testing/organizingtests#Customize-a-suites-name)
+
+테스트 스위트의 이름을 사용자 정의하려면 `@Suite` 속성에 문자열 리터럴을 인수로 제공합니다.
+
+```
+@Suite("푸드 트럭 테스트") struct FoodTruckTests {
+  @Test func foodTruckExists() { ... }
+}
+
+```
+
+테스트 함수의 모양과 동작을 추가로 사용자 정의하려면 [`tags(_:)`](https://developer.apple.com/documentation/testing/trait/tags(_:))와 같은 [특성](https://developer.apple.com/documentation/testing/traits)을 사용합니다.
+
+### [테스트 스위트 타입의 테스트 함수](https://developer.apple.com/documentation/testing/organizingtests#Test-functions-in-test-suite-types)
+
+타입에 인스턴스 메서드로 선언된 테스트 함수(즉, `static` 또는 `class` 키워드 없이)가 포함된 경우 테스팅 라이브러리는 런타임에 해당 타입의 인스턴스를 초기화한 다음 해당 인스턴스에서 테스트 함수를 호출하여 해당 테스트 함수를 호출합니다. 테스트 스위트 타입에 인스턴스 메서드로 선언된 여러 테스트 함수가 포함된 경우 각 함수는 해당 타입의 고유한 인스턴스에서 호출됩니다. 따라서 다음 테스트 스위트와 테스트 함수는 다음과 같습니다.
+
+```
+@Suite struct FoodTruckTests {
+  @Test func foodTruckExists() { ... }
+}
+
+```
+
+다음과 동일합니다.
+
+```
+@Suite struct FoodTruckTests {
+  func foodTruckExists() { ... }
+
+  @Test static func staticFoodTruckExists() {
+    let instance = FoodTruckTests()
+    instance.foodTruckExists()
+  }
+}
+
+```
+
+### [테스트 스위트 타입에 대한 제약 조건](https://developer.apple.com/documentation/testing/organizingtests#Constraints-on-test-suite-types)
+
+타입을 테스트 스위트로 사용할 때 Swift 타입에 적용되지 않는 몇 가지 제약 조건이 적용됩니다.
+
+#### [초기화가 필요할 수 있습니다](https://developer.apple.com/documentation/testing/organizingtests#An-initializer-may-be-required)
+
+타입에 인스턴스 메서드로 선언된 테스트 함수가 포함된 경우 0 인수 초기화로 타입의 인스턴스를 초기화할 수 있어야 합니다. 초기화는 다음 조합 중 하나일 수 있습니다.
+
+- 암시적 또는 명시적
+- 동기 또는 비동기
+- 던지기 또는 던지지 않기
+- `private`, `fileprivate`, `internal`, `package` 또는 `public`
+
+
+예를 들어:
+
+```
+@Suite struct FoodTruckTests {
+  var batteryLevel = 100
+
+  @Test func foodTruckExists() { ... } // ✅ 정상: 타입에 암시적 init()이 있습니다.
+}
+
+@Suite struct CashRegisterTests {
+  private init(cashOnHand: Decimal = 0.0) async throws { ... }
+
+  @Test func calculateSalesTax() { ... } // ✅ 정상: 타입에 호출 가능한 init()이 있습니다.
+}
+
+struct MenuTests {
+  var foods: [Food]
+  var prices: [Food: Decimal]
+
+  @Test static func specialOfTheDay() { ... } // ✅ 정상: 함수가 정적입니다.
+  @Test func orderAllFoods() { ... } // ❌ 오류: 스위트 타입에 init()이 필요합니다.
+}
+
+```
+
+컴파일러는 이 요구 사항을 충족하지 않는 테스트 스위트가 제공되면 오류를 발생시킵니다.
+
+### [테스트 스위트 타입은 항상 사용 가능해야 합니다](https://developer.apple.com/documentation/testing/organizingtests#Test-suite-types-must-always-be-available)
+
+`@available`를 테스트 함수에 적용하여 런타임에 가용성을 제한할 수 있지만, 테스트 스위트 타입(및 이를 포함하는 모든 타입)은 `@available` 속성으로 주석을 달아서는 _안 됩니다_.
+
+```
+@Suite struct FoodTruckTests { ... } // ✅ 정상: 타입이 항상 사용 가능합니다.
+
+@available(macOS 11.0, *) // ❌ 오류: 스위트 타입은 항상 사용 가능해야 합니다.
+@Suite struct CashRegisterTests { ... }
+
+@available(macOS 11.0, *) struct MenuItemTests { // ❌ 오류: 스위트 타입의
+                                                 // 포함하는 타입도 항상
+                                                 // 사용 가능해야 합니다.
+  @Suite struct BurgerTests { ... }
+}
+
+```
+
+컴파일러는 이 요구 사항을 충족하지 않는 테스트 스위트가 제공되면 오류를 발생시킵니다.
+
+## [참고 항목](https://developer.apple.com/documentation/testing/organizingtests#see-also)
+
+### [필수 요소](https://developer.apple.com/documentation/testing/organizingtests#Essentials)
+
+[테스트 함수 정의하기](https://developer.apple.com/documentation/testing/definingtests)
+
+코드가 올바르게 작동하는지 확인하기 위해 테스트 함수를 정의합니다.
+
+[XCTest에서 테스트 마이그레이션하기](https://developer.apple.com/documentation/testing/migratingfromxctest)
+
+XCTest를 사용하여 작성된 기존 테스트 메서드 또는 테스트 클래스를 마이그레이션합니다.
+
+[`macro Test(String?, any TestTrait...)`](https://developer.apple.com/documentation/testing/test(_:_:))
+
+테스트를 선언합니다.
+
+[`struct Test`](https://developer.apple.com/documentation/testing/test)
+
+테스트 또는 스위트를 나타내는 타입입니다.
+
+[`macro Suite(String?, any SuiteTrait...)`](https://developer.apple.com/documentation/testing/suite(_:_:))
+
+테스트 스위트를 선언합니다.
+
+현재 페이지는 스위트 타입으로 테스트 함수 구성하기입니다.
+
+## 사용자 정의 테스트 인수 인코딩
+[탐색 건너뛰기](https://developer.apple.com/documentation/testing/customtestargumentencodable#app-main)
+
+- [Swift 테스팅](https://developer.apple.com/documentation/testing)
+- CustomTestArgumentEncodable
+
+프로토콜
+
+# CustomTestArgumentEncodable
+
+매개변수화된 테스트에 전달된 인수를 인코딩하는 방법을 사용자 정의하기 위한 프로토콜로, 특정 인수를 실행할 때 일치시키는 데 사용됩니다.
+
+iOSiPadOSMac CatalystmacOStvOSvisionOSwatchOSSwift 6.0+Xcode 16.0+
+
+```
+protocol CustomTestArgumentEncodable : Sendable
+```
+
+## [언급된 곳](https://developer.apple.com/documentation/testing/customtestargumentencodable#mentions)
+
+[매개변수화된 테스트 구현하기](https://developer.apple.com/documentation/testing/parameterizedtesting)
+
+## [개요](https://developer.apple.com/documentation/testing/customtestargumentencodable#overview)
+
+테스팅 라이브러리는 선택된 테스트 케이스를 실행할 때 테스트 인수가 이 프로토콜 또는 다른 여러 알려진 프로토콜을 준수하는지 확인합니다. 테스트 인수가 이 프로토콜을 준수하면 해당 준수가 가장 높은 우선 순위를 가지며, 테스팅 라이브러리는 인수에 대해 [`encodeTestArgument(to:)`](https://developer.apple.com/documentation/testing/customtestargumentencodable/encodetestargument(to:))를 호출합니다. 이 프로토콜을 준수하는 타입은 `Encodable` 또는 `Decodable`을 준수할 필요가 없습니다.
+
+선택된 테스트 케이스를 실행할 수 있도록 지원하는 다른 방법에 대한 목록은 [매개변수화된 테스트 구현하기](https://developer.apple.com/documentation/testing/parameterizedtesting)를 참조하십시오.
+
+## [주제](https://developer.apple.com/documentation/testing/customtestargumentencodable#topics)
+
+### [인스턴스 메서드](https://developer.apple.com/documentation/testing/customtestargumentencodable#Instance-Methods)
+
+[`func encodeTestArgument(to: some Encoder) throws`](https://developer.apple.com/documentation/testing/customtestargumentencodable/encodetestargument(to:))
+
+이 테스트 인수를 인코딩합니다.
+
+**필수**
+
+## [관계](https://developer.apple.com/documentation/testing/customtestargumentencodable#relationships)
+
+### [상속 대상](https://developer.apple.com/documentation/testing/customtestargumentencodable#inherits-from)
+
+- [`Sendable`](https://developer.apple.com/documentation/Swift/Sendable)
+
+## [참고 항목](https://developer.apple.com/documentation/testing/customtestargumentencodable#see-also)
+
+### [관련 문서](https://developer.apple.com/documentation/testing/customtestargumentencodable#Related-Documentation)
+
+[매개변수화된 테스트 구현하기](https://developer.apple.com/documentation/testing/parameterizedtesting)
+
+테스트 함수에서 여러 테스트 케이스를 생성하기 위해 다른 입력 매개변수를 지정합니다.
+
+### [테스트 매개변수화](https://developer.apple.com/documentation/testing/customtestargumentencodable#Test-parameterization)
+
+[매개변수화된 테스트 구현하기](https://developer.apple.com/documentation/testing/parameterizedtesting)
+
+테스트 함수에서 여러 테스트 케이스를 생성하기 위해 다른 입력 매개변수를 지정합니다.
+
+[`macro Test<C>(String?, any TestTrait..., arguments: C)`](https://developer.apple.com/documentation/testing/test(_:_:arguments:)-8kn7a)
+
+값의 컬렉션에 대해 매개변수화된 테스트를 선언합니다.
+
+[`macro Test<C1, C2>(String?, any TestTrait..., arguments: C1, C2)`](https://developer.apple.com/documentation/testing/test(_:_:arguments:_:))
+
+두 개의 값 컬렉션에 대해 매개변수화된 테스트를 선언합니다.
+
+[`macro Test<C1, C2>(String?, any TestTrait..., arguments: Zip2Sequence<C1, C2>)`](https://developer.apple.com/documentation/testing/test(_:_:arguments:)-3rzok)
+
+두 개의 압축된 값 컬렉션에 대해 매개변수화된 테스트를 선언합니다.
+
+[`struct Case`](https://developer.apple.com/documentation/testing/test/case)
+
+매개변수화된 [`Test`](https://developer.apple.com/documentation/testing/test)의 단일 테스트 케이스입니다.
+
+현재 페이지는 CustomTestArgumentEncodable입니다.
+
+## 테스트 함수 정의하기
+[탐색 건너뛰기](https://developer.apple.com/documentation/testing/definingtests#app-main)
+
+- [Swift 테스팅](https://developer.apple.com/documentation/testing)
+- 테스트 함수 정의하기
+
+기사
+
+# 테스트 함수 정의하기
+
+코드가 올바르게 작동하는지 확인하기 위해 테스트 함수를 정의합니다.
+
+## [개요](https://developer.apple.com/documentation/testing/definingtests#Overview)
+
+Swift 패키지나 프로젝트에 대한 테스트 함수를 정의하는 것은 간단합니다.
+
+### [테스팅 라이브러리 가져오기](https://developer.apple.com/documentation/testing/definingtests#Import-the-testing-library)
+
+테스팅 라이브러리를 가져오려면 테스트가 포함된 Swift 소스 파일에 다음을 추가합니다.
+
+```
+import Testing
+
+```
+
+### [테스트 함수 선언하기](https://developer.apple.com/documentation/testing/definingtests#Declare-a-test-function)
+
+테스트 함수를 선언하려면 인수를 받지 않는 Swift 함수 선언을 작성한 다음 이름 앞에 `@Test` 속성을 붙입니다.
+
+```
+@Test func foodTruckExists() {
+  // 테스트 로직은 여기에 작성합니다.
+}
+
+```
+
+이 테스트 함수는 파일 범위 또는 타입 내에 있을 수 있습니다. 테스트 함수를 포함하는 타입은 자동으로 _테스트 스위트_이며 선택적으로 `@Suite` 속성으로 주석을 달 수 있습니다. 스위트에 대한 자세한 내용은 [스위트 타입으로 테스트 함수 구성하기](https://developer.apple.com/documentation/testing/organizingtests)를 참조하십시오.
+
+이 함수는 유효한 테스트 함수이지만 실제로는 아무 작업도 수행하거나 코드를 테스트하지 않습니다. 테스트 함수에서 예상 값과 결과를 확인하려면 테스트 함수에 [기대](https://developer.apple.com/documentation/testing/expectations)를 추가하십시오.
+
+### [테스트 이름 사용자 정의하기](https://developer.apple.com/documentation/testing/definingtests#Customize-a-tests-name)
+
+IDE나 명령줄에 표시되는 테스트 함수의 이름을 사용자 정의하려면 `@Test` 속성에 문자열 리터럴을 인수로 제공합니다.
+
+```
+@Test("푸드 트럭이 존재합니다") func foodTruckExists() { ... }
+
+```
+
+테스트 함수의 모양과 동작을 추가로 사용자 정의하려면 [`tags(_:)`](https://developer.apple.com/documentation/testing/trait/tags(_:))와 같은 [특성](https://developer.apple.com/documentation/testing/traits)을 사용합니다.
+
+### [동시성 또는 던지는 테스트 작성하기](https://developer.apple.com/documentation/testing/definingtests#Write-concurrent-or-throwing-tests)
+
+다른 Swift 함수와 마찬가지로 테스트 함수는 각각 동시성 또는 던지는 것으로 주석을 달기 위해 `async` 및 `throws`로 표시할 수 있습니다. 테스트가 주 액터의 실행 컨텍스트(즉, 프로세스의 주 스레드)에서만 안전하게 실행될 수 있는 경우 `@MainActor`로 주석을 달 수 있습니다.
+
+```
+@Test @MainActor func foodTruckExists() async throws { ... }
+
+```
+
+### [테스트 가용성 제한하기](https://developer.apple.com/documentation/testing/definingtests#Limit-the-availability-of-a-test)
+
+테스트 함수가 최신 버전의 운영 체제나 Swift 언어에서만 실행될 수 있는 경우 선언할 때 `@available` 속성을 사용합니다. 제한된 가용성으로 인해 테스트를 실행할 수 없는 경우 기록할 메시지를 지정하려면 `@available` 속성의 `message` 인수를 사용합니다.
+
+```
+@available(macOS 11.0, *)
+@available(swift, introduced: 8.0, message: "실행하려면 Swift 8.0 기능이 필요합니다")
+@Test func foodTruckExists() { ... }
+
+```
+
+## [참고 항목](https://developer.apple.com/documentation/testing/definingtests#see-also)
+
+### [필수 요소](https://developer.apple.com/documentation/testing/definingtests#Essentials)
+
+[스위트 타입으로 테스트 함수 구성하기](https://developer.apple.com/documentation/testing/organizingtests)
+
+테스트를 테스트 스위트로 구성합니다.
+
+[XCTest에서 테스트 마이그레이션하기](https://developer.apple.com/documentation/testing/migratingfromxctest)
+
+XCTest를 사용하여 작성된 기존 테스트 메서드 또는 테스트 클래스를 마이그레이션합니다.
+
+[`macro Test(String?, any TestTrait...)`](https://developer.apple.com/documentation/testing/test(_:_:))
+
+테스트를 선언합니다.
+
+[`struct Test`](https://developer.apple.com/documentation/testing/test)
+
+테스트 또는 스위트를 나타내는 타입입니다.
+
+[`macro Suite(String?, any SuiteTrait...)`](https://developer.apple.com/documentation/testing/suite(_:_:))
+
+테스트 스위트를 선언합니다.
+
+현재 페이지는 테스트 함수 정의하기입니다.
+
+## 버그 식별자 해석하기
+[탐색 건너뛰기](https://developer.apple.com/documentation/testing/bugidentifiers#app-main)
+
+- [Swift 테스팅](https://developer.apple.com/documentation/testing)
+- [특성](https://developer.apple.com/documentation/testing/traits)
+- 버그 식별자 해석하기
+
+기사
+
+# 버그 식별자 해석하기
+
+개발자가 제공한 버그 식별자를 테스팅 라이브러리가 어떻게 해석하는지 살펴봅니다.
+
+## [개요](https://developer.apple.com/documentation/testing/bugidentifiers#Overview)
+
+테스팅 라이브러리는 버그를 식별하는 두 가지 고유한 방법을 지원합니다.
+
+1. 버그에 대한 자세한 정보로 연결되는 URL
+2. 버그의 관련 버그 추적 시스템에 있는 고유 식별자
+
+
+버그에는 관련 URL과 관련 고유 식별자가 모두 있을 수 있습니다. 테스팅 라이브러리가 올바르게 해석하려면 둘 중 하나 이상이 있어야 합니다.
+
+URL로 [`Bug`](https://developer.apple.com/documentation/testing/bug) 인스턴스를 만들려면 [`bug(_:_:)`](https://developer.apple.com/documentation/testing/trait/bug(_:_:)) 특성을 사용합니다. 컴파일 타임에 테스팅 라이브러리는 주어진 문자열이 [RFC 3986](https://www.ietf.org/rfc/rfc3986.txt)에 따라 URL로 구문 분석될 수 있는지 확인합니다.
+
+버그의 고유 식별자로 [`Bug`](https://developer.apple.com/documentation/testing/bug) 인스턴스를 만들려면 [`bug(_:id:_:)`](https://developer.apple.com/documentation/testing/trait/bug(_:id:_:)-10yf5) 특성을 사용합니다. 테스팅 라이브러리는 버그의 고유 식별자가 특정 형식과 일치하도록 요구하지 않지만, `"FB"`로 시작하는 고유 식별자는 [Apple 피드백 지원](https://feedbackassistant.apple.com/)으로 추적되는 버그를 참조하는 것으로 해석합니다. 편의를 위해 [`bug(_:id:_:)`](https://developer.apple.com/documentation/testing/trait/bug(_:id:_:)-3vtpl)를 사용하여 버그의 식별자로 정수를 직접 전달할 수도 있습니다.
+
+### [예제](https://developer.apple.com/documentation/testing/bugidentifiers#Examples)
+
+| 특성 함수 | 추론된 버그 추적 시스템 |
+| --- | --- |
+| `.bug(id: 12345)` | 없음 |
+| `.bug(id: "12345")` | 없음 |
+| `.bug("https://www.example.com?id=12345", id: "12345")` | 없음 |
+| `.bug("https://github.com/swiftlang/swift/pull/12345")` | [Swift 프로젝트용 GitHub 문제](https://github.com/swiftlang/swift/issues) |
+| `.bug("https://bugs.webkit.org/show_bug.cgi?id=12345")` | [WebKit Bugzilla](https://bugs.webkit.org/) |
+| `.bug(id: "FB12345")` | Apple 피드백 지원 |
+
+## [참고 항목](https://developer.apple.com/documentation/testing/bugidentifiers#see-also)
+
+### [테스트에 주석 달기](https://developer.apple.com/documentation/testing/bugidentifiers#Annotating-tests)
+
+[테스트에 태그 추가하기](https://developer.apple.com/documentation/testing/addingtags)
+
+구성, 필터링 및 모양 사용자 정의를 위한 의미 정보를 제공하기 위해 태그를 사용합니다.
+
+[테스트에 주석 추가하기](https://developer.apple.com/documentation/testing/addingcomments)
+
+테스트에 대한 유용한 정보를 제공하기 위해 주석을 추가합니다.
+
+[테스트와 버그 연관시키기](https://developer.apple.com/documentation/testing/associatingbugs)
+
+테스트에서 발견되거나 확인된 버그를 연관시킵니다.
+
+[`macro Tag()`](https://developer.apple.com/documentation/testing/tag())
+
+테스트 함수나 테스트 스위트에 적용할 수 있는 태그를 선언합니다.
+
+[`static func bug(String, Comment?) -> Self`](https://developer.apple.com/documentation/testing/trait/bug(_:_:))
+
+테스트와 함께 추적할 버그를 구성합니다.
+
+[`static func bug(String?, id: String, Comment?) -> Self`](https://developer.apple.com/documentation/testing/trait/bug(_:id:_:)-10yf5)
+
+테스트와 함께 추적할 버그를 구성합니다.
+
+[`static func bug(String?, id: some Numeric, Comment?) -> Self`](https://developer.apple.com/documentation/testing/trait/bug(_:id:_:)-3vtpl)
+
+테스트와 함께 추적할 버그를 구성합니다.
+
+현재 페이지는 버그 식별자 해석하기입니다.
+
+## 테스트 실행 시간 제한하기
+[탐색 건너뛰기](https://developer.apple.com/documentation/testing/limitingexecutiontime#app-main)
+
+- [Swift 테스팅](https://developer.apple.com/documentation/testing)
+- [특성](https://developer.apple.com/documentation/testing/traits)
+- 테스트 실행 시간 제한하기
+
+기사
+
+# 테스트 실행 시간 제한하기
+
+테스트가 실패할 때까지 실행될 수 있는 시간에 대한 제한을 설정합니다.
+
+## [개요](https://developer.apple.com/documentation/testing/limitingexecutiontime#Overview)
+
+일부 테스트는 자연스럽게 느리게 실행될 수 있습니다. 완료하는 데 상당한 시스템 리소스가 필요하거나, 서버에서 다운로드한 데이터에 의존하거나, 다른 외부 요인에 의존할 수 있습니다.
+
+테스트가 무기한 중단되거나 효과적으로 완료하기에 너무 많은 시스템 리소스를 소비할 수 있는 경우, 과도한 시간 동안 실행되면 실패로 표시되도록 시간 제한을 설정하는 것을 고려하십시오. 상한으로 [`timeLimit(_:)`](https://developer.apple.com/documentation/testing/trait/timelimit(_:)) 특성을 사용합니다.
+
+```
+@Test(.timeLimit(.minutes(60))
+func serve100CustomersInOneHour() async {
+  for _ in 0 ..< 100 {
+    let customer = await Customer.next()
+    await customer.order()
+    ...
+  }
+}
+
+```
+
+위의 테스트 함수가 실행되는 데 1시간(60 x 60초) 이상 걸리면 실행 중인 작업이 [취소](https://developer.apple.com/documentation/swift/task/cancel())되고 테스트는 [`Issue.Kind.timeLimitExceeded(timeLimitComponents:)`](https://developer.apple.com/documentation/testing/issue/kind-swift.enum/timelimitexceeded(timelimitcomponents:)) 종류의 문제로 실패합니다.
+
+테스팅 라이브러리는 성능상의 이유로 또는 테스트가 실행될 충분한 시간을 확보하기 위해 지정된 시간 제한을 조정할 수 있습니다. 특히, (기본적으로) 1분의 세분성이 테스트에 적용됩니다. 테스팅 라이브러리는 적용된 시간 제한 특성을 재정의하는 테스트당 최대 시간 제한으로 구성할 수도 있습니다.
+
+### [테스트 스위트에 적용되는 시간 제한](https://developer.apple.com/documentation/testing/limitingexecutiontime#Time-limits-applied-to-test-suites)
+
+테스트 스위트에 시간 제한이 적용되면 해당 스위트 내의 모든 테스트 함수 및 하위 테스트 스위트에 재귀적으로 적용됩니다.
+
+### [매개변수화된 테스트에 적용되는 시간 제한](https://developer.apple.com/documentation/testing/limitingexecutiontime#Time-limits-applied-to-parameterized-tests)
+
+매개변수화된 테스트 함수에 시간 제한이 적용되면 각 호출에 _별도로_ 적용되므로 일부 인수만 실패를 유발하는 경우 성공적인 인수가 잘못 실패로 표시되지 않습니다.
+
+## [참고 항목](https://developer.apple.com/documentation/testing/limitingexecutiontime#see-also)
+
+### [런타임 동작 사용자 정의하기](https://developer.apple.com/documentation/testing/limitingexecutiontime#Customizing-runtime-behaviors)
+
+[테스트 활성화 및 비활성화하기](https://developer.apple.com/documentation/testing/enablinganddisabling)
+
+실행되기 전에 개별 테스트를 조건부로 활성화하거나 비활성화합니다.
+
+[`static func enabled(if: @autoclosure () throws -> Bool, Comment?, sourceLocation: SourceLocation) -> Self`](https://developer.apple.com/documentation/testing/trait/enabled(if:_:sourcelocation:))
+
+`false`를 반환하면 테스트를 비활성화하는 조건 특성을 구성합니다.
+
+[`static func enabled(Comment?, sourceLocation: SourceLocation, () async throws -> Bool) -> Self`](https://developer.apple.com/documentation/testing/trait/enabled(_:sourcelocation:_:))
+
+`false`를 반환하면 테스트를 비활성화하는 조건 특성을 구성합니다.
+
+[`static func disabled(Comment?, sourceLocation: SourceLocation) -> Self`](https://developer.apple.com/documentation/testing/trait/disabled(_:sourcelocation:))
+
+테스트를 무조건 비활성화하는 조건 특성을 구성합니다.
+
+[`static func disabled(if: @autoclosure () throws -> Bool, Comment?, sourceLocation: SourceLocation) -> Self`](https://developer.apple.com/documentation/testing/trait/disabled(if:_:sourcelocation:))
+
+값이 true이면 테스트를 비활성화하는 조건 특성을 구성합니다.
+
+[`static func disabled(Comment?, sourceLocation: SourceLocation, () async throws -> Bool) -> Self`](https://developer.apple.com/documentation/testing/trait/disabled(_:sourcelocation:_:))
+
+값이 true이면 테스트를 비활성화하는 조건 특성을 구성합니다.
+
+[`static func timeLimit(TimeLimitTrait.Duration) -> Self`](https://developer.apple.com/documentation/testing/trait/timelimit(_:))
+
+너무 오래 실행되면 시간 초과되는 테스트를 유발하는 시간 제한 특성을 구성합니다.
+
+현재 페이지는 테스트 실행 시간 제한하기입니다.
+
+## 테스트 범위 지정 프로토콜
+[탐색 건너뛰기](https://developer.apple.com/documentation/testing/testscoping#app-main)
+
+- [Swift 테스팅](https://developer.apple.com/documentation/testing)
+- TestScoping
+
+프로토콜
+
+# TestScoping
+
+테스트 러너에게 테스트 스위트나 테스트 함수를 실행하기 전후에 사용자 정의 코드를 실행하도록 지시하는 프로토콜입니다.
+
+Swift 6.1+Xcode 16.3+
+
+```
+protocol TestScoping : Sendable
+```
+
+## [개요](https://developer.apple.com/documentation/testing/testscoping#overview)
+
+[`scopeProvider(for:testCase:)`](https://developer.apple.com/documentation/testing/trait/scopeprovider(for:testcase:)) 메서드를 구현하여 테스트에 대한 사용자 정의 범위를 제공하고 이 프로토콜을 준수하는 타입을 반환합니다. 비슷한 요구 사항이 있는 테스트에 대한 공통 설정 및 해제 논리를 통합하기 위해 사용자 정의 범위를 만들어 각 테스트 함수가 테스트의 고유한 측면에 집중할 수 있도록 합니다.
+
+## [주제](https://developer.apple.com/documentation/testing/testscoping#topics)
+
+### [인스턴스 메서드](https://developer.apple.com/documentation/testing/testscoping#Instance-Methods)
+
+[`func provideScope(for: Test, testCase: Test.Case?, performing: () async throws -> Void) async throws`](https://developer.apple.com/documentation/testing/testscoping/providescope(for:testcase:performing:))
+
+지정된 테스트 및 선택적 테스트 케이스에 대한 사용자 정의 실행 범위를 제공합니다.
+
+**필수**
+
+## [관계](https://developer.apple.com/documentation/testing/testscoping#relationships)
+
+### [상속 대상](https://developer.apple.com/documentation/testing/testscoping#inherits-from)
+
+- [`Sendable`](https://developer.apple.com/documentation/Swift/Sendable)
+
+## [참고 항목](https://developer.apple.com/documentation/testing/testscoping#see-also)
+
+### [사용자 정의 특성 만들기](https://developer.apple.com/documentation/testing/testscoping#Creating-custom-traits)
+
+[`protocol Trait`](https://developer.apple.com/documentation/testing/trait)
+
+테스트 함수나 테스트 스위트에 추가할 수 있는 특성을 설명하는 프로토콜입니다.
+
+[`protocol TestTrait`](https://developer.apple.com/documentation/testing/testtrait)
+
+테스트 함수에 추가할 수 있는 특성을 설명하는 프로토콜입니다.
+
+[`protocol SuiteTrait`](https://developer.apple.com/documentation/testing/suitetrait)
+
+테스트 스위트에 추가할 수 있는 특성을 설명하는 프로토콜입니다.
+
+현재 페이지는 TestScoping입니다.
+
+## 이벤트 확인 타입
+[탐색 건너뛰기](https://developer.apple.com/documentation/testing/confirmation#app-main)
+
+- [Swift 테스팅](https://developer.apple.com/documentation/testing)
+- 확인
+
+구조체
+
+# 확인
+
+이벤트가 0번 이상 발생하는지 확인하는 데 사용할 수 있는 타입입니다.
+
+iOSiPadOSMac CatalystmacOStvOSvisionOSwatchOSSwift 6.0+Xcode 16.0+
+
+```
+struct Confirmation
+```
+
+## [언급된 곳](https://developer.apple.com/documentation/testing/confirmation#mentions)
+
+[비동기 코드 테스트하기](https://developer.apple.com/documentation/testing/testing-asynchronous-code)
+
+[XCTest에서 테스트 마이그레이션하기](https://developer.apple.com/documentation/testing/migratingfromxctest)
+
+## [주제](https://developer.apple.com/documentation/testing/confirmation#topics)
+
+### [인스턴스 메서드](https://developer.apple.com/documentation/testing/confirmation#Instance-Methods)
+
+[`func callAsFunction(count: Int)`](https://developer.apple.com/documentation/testing/confirmation/callasfunction(count:))
+
+이 확인을 확인합니다.
+
+[`func confirm(count: Int)`](https://developer.apple.com/documentation/testing/confirmation/confirm(count:))
+
+이 확인을 확인합니다.
+
+## [관계](https://developer.apple.com/documentation/testing/confirmation#relationships)
+
+### [준수 대상](https://developer.apple.com/documentation/testing/confirmation#conforms-to)
+
+- [`Sendable`](https://developer.apple.com/documentation/Swift/Sendable)
+
+## [참고 항목](https://developer.apple.com/documentation/testing/confirmation#see-also)
+
+### [비동기 이벤트 발생 확인하기](https://developer.apple.com/documentation/testing/confirmation#Confirming-that-asynchronous-events-occur)
+
+[비동기 코드 테스트하기](https://developer.apple.com/documentation/testing/testing-asynchronous-code)
+
+코드가 예상 이벤트를 발생시키는지 확인합니다.
+
+[`func confirmation<R>(Comment?, expectedCount: Int, isolation: isolated (any Actor)?, sourceLocation: SourceLocation, (Confirmation) async throws -> sending R) async rethrows -> R`](https://developer.apple.com/documentation/testing/confirmation(_:expectedcount:isolation:sourcelocation:_:)-5mqz2)
+
+함수 호출 중에 일부 이벤트가 발생하는지 확인합니다.
+
+[`func confirmation<R>(Comment?, expectedCount: some RangeExpression<Int> & Sendable & Sequence<Int>, isolation: isolated (any Actor)?, sourceLocation: SourceLocation, (Confirmation) async throws -> sending R) async rethrows -> R`](https://developer.apple.com/documentation/testing/confirmation(_:expectedcount:isolation:sourcelocation:_:)-l3il)
+
+함수 호출 중에 일부 이벤트가 발생하는지 확인합니다.
+
+현재 페이지는 확인입니다.
+
+## 태그 타입 개요
+[탐색 건너뛰기](https://developer.apple.com/documentation/testing/tag#app-main)
+
+- [Swift 테스팅](https://developer.apple.com/documentation/testing)
+- 태그
+
+구조체
+
+# 태그
+
+테스트에 적용할 수 있는 태그를 나타내는 타입입니다.
+
+iOSiPadOSMac CatalystmacOStvOSvisionOSwatchOSSwift 6.0+Xcode 16.0+
+
+```
+struct Tag
+```
+
+## [언급된 곳](https://developer.apple.com/documentation/testing/tag#mentions)
+
+[테스트에 태그 추가하기](https://developer.apple.com/documentation/testing/addingtags)
+
+## [개요](https://developer.apple.com/documentation/testing/tag#overview)
+
+테스트에 태그를 적용하려면 [`tags(_:)`](https://developer.apple.com/documentation/testing/trait/tags(_:)) 함수를 사용합니다.
+
+## [주제](https://developer.apple.com/documentation/testing/tag#topics)
+
+### [구조체](https://developer.apple.com/documentation/testing/tag#Structures)
+
+[`struct List`](https://developer.apple.com/documentation/testing/tag/list)
+
+테스트에 적용된 하나 이상의 태그를 나타내는 타입입니다.
+
+### [기본 구현](https://developer.apple.com/documentation/testing/tag#Default-Implementations)
+
+[API 참조
+CodingKeyRepresentable 구현](https://developer.apple.com/documentation/testing/tag/codingkeyrepresentable-implementations)
+
+[API 참조
+Comparable 구현](https://developer.apple.com/documentation/testing/tag/comparable-implementations)
+
+[API 참조
+CustomStringConvertible 구현](https://developer.apple.com/documentation/testing/tag/customstringconvertible-implementations)
+
+[API 참조
+Decodable 구현](https://developer.apple.com/documentation/testing/tag/decodable-implementations)
+
+[API 참조
+Encodable 구현](https://developer.apple.com/documentation/testing/tag/encodable-implementations)
+
+[API 참조
+Equatable 구현](https://developer.apple.com/documentation/testing/tag/equatable-implementations)
+
+[API 참조
+Hashable 구현](https://developer.apple.com/documentation/testing/tag/hashable-implementations)
+
+## [관계](https://developer.apple.com/documentation/testing/tag#relationships)
+
+### [준수 대상](https://developer.apple.com/documentation/testing/tag#conforms-to)
+
+- [`CodingKeyRepresentable`](https://developer.apple.com/documentation/Swift/CodingKeyRepresentable)
+- [`Comparable`](https://developer.apple.com/documentation/Swift/Comparable)
+- [`Copyable`](https://developer.apple.com/documentation/Swift/Copyable)
+- [`CustomStringConvertible`](https://developer.apple.com/documentation/Swift/CustomStringConvertible)
+- [`Decodable`](https://developer.apple.com/documentation/Swift/Decodable)
+- [`Encodable`](https://developer.apple.com/documentation/Swift/Encodable)
+- [`Equatable`](https://developer.apple.com/documentation/Swift/Equatable)
+- [`Hashable`](https://developer.apple.com/documentation/Swift/Hashable)
+- [`Sendable`](https://developer.apple.com/documentation/Swift/Sendable)
+
+## [참고 항목](https://developer.apple.com/documentation/testing/tag#see-also)
+
+### [지원 타입](https://developer.apple.com/documentation/testing/tag#Supporting-types)
+
+[`struct Bug`](https://developer.apple.com/documentation/testing/bug)
+
+테스트에서 추적하는 버그 보고서를 나타내는 타입입니다.
+
+[`struct Comment`](https://developer.apple.com/documentation/testing/comment)
+
+테스트와 관련된 주석을 나타내는 타입입니다.
+
+[`struct ConditionTrait`](https://developer.apple.com/documentation/testing/conditiontrait)
+
+테스팅 라이브러리가 테스트를 활성화하기 위해 충족해야 하는 조건을 정의하는 타입입니다.
+
+[`struct ParallelizationTrait`](https://developer.apple.com/documentation/testing/parallelizationtrait)
+
+테스팅 라이브러리가 이 테스트를 직렬 또는 병렬로 실행할지 여부를 정의하는 타입입니다.
+
+[`struct List`](https://developer.apple.com/documentation/testing/tag/list)
+
+테스트에 적용된 하나 이상의 태그를 나타내는 타입입니다.
+
+[`struct TimeLimitTrait`](https://developer.apple.com/documentation/testing/timelimittrait)
+
+테스트에 적용할 시간 제한을 정의하는 타입입니다.
+
+현재 페이지는 태그입니다.
+
+## SuiteTrait 프로토콜
+[탐색 건너뛰기](https://developer.apple.com/documentation/testing/suitetrait#app-main)
+
+- [Swift 테스팅](https://developer.apple.com/documentation/testing)
+- SuiteTrait
+
+프로토콜
+
+# SuiteTrait
+
+테스트 스위트에 추가할 수 있는 특성을 설명하는 프로토콜입니다.
+
+iOSiPadOSMac CatalystmacOStvOSvisionOSwatchOSSwift 6.0+Xcode 16.0+
+
+```
+protocol SuiteTrait : Trait
+```
+
+## [개요](https://developer.apple.com/documentation/testing/suitetrait#overview)
+
+테스팅 라이브러리는 테스트 스위트에 추가할 수 있는 여러 특성을 정의합니다. 이 프로토콜 또는 [`TestTrait`](https://developer.apple.com/documentation/testing/testtrait) 프로토콜을 준수하는 타입을 만들어 사용자 정의 특성을 정의할 수도 있습니다.
+
+## [주제](https://developer.apple.com/documentation/testing/suitetrait#topics)
+
+### [인스턴스 속성](https://developer.apple.com/documentation/testing/suitetrait#Instance-Properties)
+
+[`var isRecursive: Bool`](https://developer.apple.com/documentation/testing/suitetrait/isrecursive)
+
+이 인스턴스를 하위 테스트 스위트 및 테스트 함수에 재귀적으로 적용해야 하는지 여부입니다.
+
+**필수** 기본 구현이 제공됩니다.
+
+## [관계](https://developer.apple.com/documentation/testing/suitetrait#relationships)
+
+### [상속 대상](https://developer.apple.com/documentation/testing/suitetrait#inherits-from)
+
+- [`Sendable`](https://developer.apple.com/documentation/Swift/Sendable)
+- [`Trait`](https://developer.apple.com/documentation/testing/trait)
+
+### [준수 타입](https://developer.apple.com/documentation/testing/suitetrait#conforming-types)
+
+- [`Bug`](https://developer.apple.com/documentation/testing/bug)
+- [`Comment`](https://developer.apple.com/documentation/testing/comment)
+- [`ConditionTrait`](https://developer.apple.com/documentation/testing/conditiontrait)
+- [`ParallelizationTrait`](https://developer.apple.com/documentation/testing/parallelizationtrait)
+- [`Tag.List`](https://developer.apple.com/documentation/testing/tag/list)
+- [`TimeLimitTrait`](https://developer.apple.com/documentation/testing/timelimittrait)
+
+## [참고 항목](https://developer.apple.com/documentation/testing/suitetrait#see-also)
+
+### [사용자 정의 특성 만들기](https://developer.apple.com/documentation/testing/suitetrait#Creating-custom-traits)
+
+[`protocol Trait`](https://developer.apple.com/documentation/testing/trait)
+
+테스트 함수나 테스트 스위트에 추가할 수 있는 특성을 설명하는 프로토콜입니다.
+
+[`protocol TestTrait`](https://developer.apple.com/documentation/testing/testtrait)
+
+테스트 함수에 추가할 수 있는 특성을 설명하는 프로토콜입니다.
+
+[`protocol TestScoping`](https://developer.apple.com/documentation/testing/testscoping)
+
+테스트 러너에게 테스트 스위트나 테스트 함수를 실행하기 전후에 사용자 정의 코드를 실행하도록 지시하는 프로토콜입니다.
+
+현재 페이지는 SuiteTrait입니다.
+
+## Trait 프로토콜
+[탐색 건너뛰기](https://developer.apple.com/documentation/testing/trait#app-main)
+
+- [Swift 테스팅](https://developer.apple.com/documentation/testing)
+- Trait
+
+프로토콜
+
+# Trait
+
+테스트 함수나 테스트 스위트에 추가할 수 있는 특성을 설명하는 프로토콜입니다.
+
+iOSiPadOSMac CatalystmacOStvOSvisionOSwatchOSSwift 6.0+Xcode 16.0+
+
+```
+protocol Trait : Sendable
+```
+
+## [개요](https://developer.apple.com/documentation/testing/trait#overview)
+
+테스팅 라이브러리는 테스트 함수 및 테스트 스위트에 추가할 수 있는 여러 특성을 정의합니다. [`TestTrait`](https://developer.apple.com/documentation/testing/testtrait) 또는 [`SuiteTrait`](https://developer.apple.com/documentation/testing/suitetrait)를 준수하는 타입을 만들어 사용자 정의 특성을 정의합니다.
+
+[`TestTrait`](https://developer.apple.com/documentation/testing/testtrait)
+
+테스트 함수에 추가하는 특성에서 이 타입을 준수합니다.
+
+[`SuiteTrait`](https://developer.apple.com/documentation/testing/suitetrait)
+
+테스트 스위트에 추가하는 특성에서 이 타입을 준수합니다.
+
+[`TestTrait`](https://developer.apple.com/documentation/testing/testtrait) 및 [`SuiteTrait`](https://developer.apple.com/documentation/testing/suitetrait)를 모두 준수하는 특성을 테스트 함수 및 테스트 스위트에 추가할 수 있습니다.
+
+## [주제](https://developer.apple.com/documentation/testing/trait#topics)
+
+### [테스트 활성화 및 비활성화하기](https://developer.apple.com/documentation/testing/trait#Enabling-and-disabling-tests)
+
+[`static func enabled(if: @autoclosure () throws -> Bool, Comment?, sourceLocation: SourceLocation) -> Self`](https://developer.apple.com/documentation/testing/trait/enabled(if:_:sourcelocation:))
+
+`false`를 반환하면 테스트를 비활성화하는 조건 특성을 구성합니다.
+
+[`static func enabled(Comment?, sourceLocation: SourceLocation, () async throws -> Bool) -> Self`](https://developer.apple.com/documentation/testing/trait/enabled(_:sourcelocation:_:))
+
+`false`를 반환하면 테스트를 비활성화하는 조건 특성을 구성합니다.
+
+[`static func disabled(Comment?, sourceLocation: SourceLocation) -> Self`](https://developer.apple.com/documentation/testing/trait/disabled(_:sourcelocation:))
+
+테스트를 무조건 비활성화하는 조건 특성을 구성합니다.
+
+[`static func disabled(if: @autoclosure () throws -> Bool, Comment?, sourceLocation: SourceLocation) -> Self`](https://developer.apple.com/documentation/testing/trait/disabled(if:_:sourcelocation:))
+
+값이 true이면 테스트를 비활성화하는 조건 특성을 구성합니다.
+
+[`static func disabled(Comment?, sourceLocation: SourceLocation, () async throws -> Bool) -> Self`](https://developer.apple.com/documentation/testing/trait/disabled(_:sourcelocation:_:))
+
+값이 true이면 테스트를 비활성화하는 조건 특성을 구성합니다.
+
+### [테스트 실행 방법 제어하기](https://developer.apple.com/documentation/testing/trait#Controlling-how-tests-are-run)
+
+[`static func timeLimit(TimeLimitTrait.Duration) -> Self`](https://developer.apple.com/documentation/testing/trait/timelimit(_:))
+
+너무 오래 실행되면 시간 초과되는 테스트를 유발하는 시간 제한 특성을 구성합니다.
+
+[`static var serialized: ParallelizationTrait`](https://developer.apple.com/documentation/testing/trait/serialized)
+
+적용된 테스트를 직렬화하는 특성입니다.
+
+### [테스트 분류 및 정보 추가하기](https://developer.apple.com/documentation/testing/trait#Categorizing-tests-and-adding-information)
+
+[`static func tags(Tag...) -> Self`](https://developer.apple.com/documentation/testing/trait/tags(_:))
+
+테스트에 적용할 태그 목록을 구성합니다.
+
+[`var comments: [Comment]`](https://developer.apple.com/documentation/testing/trait/comments)
+
+이 특성에 대한 사용자가 제공한 주석입니다.
+
+**필수** 기본 구현이 제공됩니다.
+
+### [버그 연관시키기](https://developer.apple.com/documentation/testing/trait#Associating-bugs)
+
+[`static func bug(String, Comment?) -> Self`](https://developer.apple.com/documentation/testing/trait/bug(_:_:))
+
+테스트와 함께 추적할 버그를 구성합니다.
+
+[`static func bug(String?, id: String, Comment?) -> Self`](https://developer.apple.com/documentation/testing/trait/bug(_:id:_:)-10yf5)
+
+테스트와 함께 추적할 버그를 구성합니다.
+
+[`static func bug(String?, id: some Numeric, Comment?) -> Self`](https://developer.apple.com/documentation/testing/trait/bug(_:id:_:)-3vtpl)
+
+테스트와 함께 추적할 버그를 구성합니다.
+
+### [테스트 또는 스위트 전후에 코드 실행하기](https://developer.apple.com/documentation/testing/trait#Running-code-before-and-after-a-test-or-suite)
+
+[`protocol TestScoping`](https://developer.apple.com/documentation/testing/testscoping)
+
+테스트 러너에게 테스트 스위트나 테스트 함수를 실행하기 전후에 사용자 정의 코드를 실행하도록 지시하는 프로토콜입니다.
+
+[`func scopeProvider(for: Test, testCase: Test.Case?) -> Self.TestScopeProvider?`](https://developer.apple.com/documentation/testing/trait/scopeprovider(for:testcase:))
+
+지정된 테스트 및 선택적 테스트 케이스에 대한 이 특성의 범위 제공자를 가져옵니다.
+
+**필수** 기본 구현이 제공됩니다.
+
+[`associatedtype TestScopeProvider : TestScoping = Never`](https://developer.apple.com/documentation/testing/trait/testscopeprovider)
+
+이 특성에 대한 테스트 범위 제공자의 타입입니다.
+
+**필수**
+
+[`func prepare(for: Test) async throws`](https://developer.apple.com/documentation/testing/trait/prepare(for:))
+
+이 특성이 있는 테스트를 실행할 준비를 합니다.
+
+**필수** 기본 구현이 제공됩니다.
+
+## [관계](https://developer.apple.com/documentation/testing/trait#relationships)
+
+### [상속 대상](https://developer.apple.com/documentation/testing/trait#inherits-from)
+
+- [`Sendable`](https://developer.apple.com/documentation/Swift/Sendable)
+
+### [상속 주체](https://developer.apple.com/documentation/testing/trait#inherited-by)
+
+- [`SuiteTrait`](https://developer.apple.com/documentation/testing/suitetrait)
+- [`TestTrait`](https://developer.apple.com/documentation/testing/testtrait)
+
+### [준수 타입](https://developer.apple.com/documentation/testing/trait#conforming-types)
+
+- [`Bug`](https://developer.apple.com/documentation/testing/bug)
+- [`Comment`](https://developer.apple.com/documentation/testing/comment)
+- [`ConditionTrait`](https://developer.apple.com/documentation/testing/conditiontrait)
+- [`ParallelizationTrait`](https://developer.apple.com/documentation/testing/parallelizationtrait)
+- [`Tag.List`](https://developer.apple.com/documentation/testing/tag/list)
+- [`TimeLimitTrait`](https://developer.apple.com/documentation/testing/timelimittrait)
+
+## [참고 항목](https://developer.apple.com/documentation/testing/trait#see-also)
+
+### [사용자 정의 특성 만들기](https://developer.apple.com/documentation/testing/trait#Creating-custom-traits)
+
+[`protocol TestTrait`](https://developer.apple.com/documentation/testing/testtrait)
+
+테스트 함수에 추가할 수 있는 특성을 설명하는 프로토콜입니다.
+
+[`protocol SuiteTrait`](https://developer.apple.com/documentation/testing/suitetrait)
+
+테스트 스위트에 추가할 수 있는 특성을 설명하는 프로토콜입니다.
+
+[`protocol TestScoping`](https://developer.apple.com/documentation/testing/testscoping)
+
+테스트 러너에게 테스트 스위트나 테스트 함수를 실행하기 전후에 사용자 정의 코드를 실행하도록 지시하는 프로토콜입니다.
+
+현재 페이지는 Trait입니다.
+
+## 기대 실패 오류
+[탐색 건너뛰기](https://developer.apple.com/documentation/testing/expectationfailederror#app-main)
+
+- [Swift 테스팅](https://developer.apple.com/documentation/testing)
+- ExpectationFailedError
+
+구조체
+
+# ExpectationFailedError
+
+평가 중 기대가 실패할 때 발생하는 오류를 설명하는 타입입니다.
+
+iOSiPadOSMac CatalystmacOStvOSvisionOSwatchOSSwift 6.0+Xcode 16.0+
+
+```
+struct ExpectationFailedError
+```
+
+## [개요](https://developer.apple.com/documentation/testing/expectationfailederror#overview)
+
+테스팅 라이브러리는 `#require()` 매크로가 문제를 기록할 때 이 타입의 인스턴스를 발생시킵니다.
+
+## [주제](https://developer.apple.com/documentation/testing/expectationfailederror#topics)
+
+### [인스턴스 속성](https://developer.apple.com/documentation/testing/expectationfailederror#Instance-Properties)
+
+[`var expectation: Expectation`](https://developer.apple.com/documentation/testing/expectationfailederror/expectation)
+
+실패한 기대입니다.
+
+## [관계](https://developer.apple.com/documentation/testing/expectationfailederror#relationships)
+
+### [준수 대상](https://developer.apple.com/documentation/testing/expectationfailederror#conforms-to)
+
+- [`Error`](https://developer.apple.com/documentation/Swift/Error)
+- [`Sendable`](https://developer.apple.com/documentation/Swift/Sendable)
+
+## [참고 항목](https://developer.apple.com/documentation/testing/expectationfailederror#see-also)
+
+### [확인된 기대에 대한 정보 검색하기](https://developer.apple.com/documentation/testing/expectationfailederror#Retrieving-information-about-checked-expectations)
+
+[`struct Expectation`](https://developer.apple.com/documentation/testing/expectation)
+
+평가된 기대를 설명하는 타입입니다.
+
+[`protocol CustomTestStringConvertible`](https://developer.apple.com/documentation/testing/customteststringconvertible)
+
+테스트 출력의 일부로 표시될 때 사용자 정의 문자열 표현을 가진 타입을 설명하는 프로토콜입니다.
+
+현재 페이지는 ExpectationFailedError입니다.
+
+## 시간 제한 특성
+[탐색 건너뛰기](https://developer.apple.com/documentation/testing/timelimittrait#app-main)
+
+- [Swift 테스팅](https://developer.apple.com/documentation/testing)
+- TimeLimitTrait
+
+구조체
+
+# TimeLimitTrait
+
+테스트에 적용할 시간 제한을 정의하는 타입입니다.
+
+iOS 16.0+iPadOS 16.0+Mac Catalyst 16.0+macOS 13.0+tvOS 16.0+visionOSwatchOS 9.0+Swift 6.0+Xcode 16.0+
+
+```
+struct TimeLimitTrait
+```
+
+## [개요](https://developer.apple.com/documentation/testing/timelimittrait#overview)
+
+이 특성을 테스트에 추가하려면 [`timeLimit(_:)`](https://developer.apple.com/documentation/testing/trait/timelimit(_:))를 사용합니다.
+
+## [주제](https://developer.apple.com/documentation/testing/timelimittrait#topics)
+
+### [구조체](https://developer.apple.com/documentation/testing/timelimittrait#Structures)
+
+[`struct Duration`](https://developer.apple.com/documentation/testing/timelimittrait/duration)
+
+테스트에 적용된 시간 제한의 기간을 나타내는 타입입니다.
+
+### [인스턴스 속성](https://developer.apple.com/documentation/testing/timelimittrait#Instance-Properties)
+
+[`var isRecursive: Bool`](https://developer.apple.com/documentation/testing/timelimittrait/isrecursive)
+
+이 인스턴스를 하위 테스트 스위트 및 테스트 함수에 재귀적으로 적용해야 하는지 여부입니다.
+
+[`var timeLimit: Duration`](https://developer.apple.com/documentation/testing/timelimittrait/timelimit)
+
+테스트가 시간 초과되기 전에 실행될 수 있는 최대 시간입니다.
+
+### [타입 별칭](https://developer.apple.com/documentation/testing/timelimittrait#Type-Aliases)
+
+[`typealias TestScopeProvider`](https://developer.apple.com/documentation/testing/timelimittrait/testscopeprovider)
+
+이 특성에 대한 테스트 범위 제공자의 타입입니다.
+
+### [기본 구현](https://developer.apple.com/documentation/testing/timelimittrait#Default-Implementations)
+
+[API 참조
+Trait 구현](https://developer.apple.com/documentation/testing/timelimittrait/trait-implementations)
+
+## [관계](https://developer.apple.com/documentation/testing/timelimittrait#relationships)
+
+### [준수 대상](https://developer.apple.com/documentation/testing/timelimittrait#conforms-to)
+
+- [`Sendable`](https://developer.apple.com/documentation/Swift/Sendable)
+- [`SuiteTrait`](https://developer.apple.com/documentation/testing/suitetrait)
+- [`TestTrait`](https://developer.apple.com/documentation/testing/testtrait)
+- [`Trait`](https://developer.apple.com/documentation/testing/trait)
+
+## [참고 항목](https://developer.apple.com/documentation/testing/timelimittrait#see-also)
+
+### [지원 타입](https://developer.apple.com/documentation/testing/timelimittrait#Supporting-types)
+
+[`struct Bug`](https://developer.apple.com/documentation/testing/bug)
+
+테스트에서 추적하는 버그 보고서를 나타내는 타입입니다.
+
+[`struct Comment`](https://developer.apple.com/documentation/testing/comment)
+
+테스트와 관련된 주석을 나타내는 타입입니다.
+
+[`struct ConditionTrait`](https://developer.apple.com/documentation/testing/conditiontrait)
+
+테스팅 라이브러리가 테스트를 활성화하기 위해 충족해야 하는 조건을 정의하는 타입입니다.
+
+[`struct ParallelizationTrait`](https://developer.apple.com/documentation/testing/parallelizationtrait)
+
+테스팅 라이브러리가 이 테스트를 직렬 또는 병렬로 실행할지 여부를 정의하는 타입입니다.
+
+[`struct Tag`](https://developer.apple.com/documentation/testing/tag)
+
+테스트에 적용할 수 있는 태그를 나타내는 타입입니다.
+
+[`struct List`](https://developer.apple.com/documentation/testing/tag/list)
+
+테스트에 적용된 하나 이상의 태그를 나타내는 타입입니다.
+
+현재 페이지는 TimeLimitTrait입니다.
+
+## Swift 기대 타입
+[탐색 건너뛰기](https://developer.apple.com/documentation/testing/expectation#app-main)
+
+- [Swift 테스팅](https://developer.apple.com/documentation/testing)
+- 기대
+
+구조체
+
+# 기대
+
+평가된 기대를 설명하는 타입입니다.
+
+iOSiPadOSMac CatalystmacOStvOSvisionOSwatchOSSwift 6.0+Xcode 16.0+
+
+```
+struct Expectation
+```
+
+## [주제](https://developer.apple.com/documentation/testing/expectation#topics)
+
+### [인스턴스 속성](https://developer.apple.com/documentation/testing/expectation#Instance-Properties)
+
+[`var isPassing: Bool`](https://developer.apple.com/documentation/testing/expectation/ispassing)
+
+기대가 통과했는지 실패했는지 여부입니다.
+
+[`var isRequired: Bool`](https://developer.apple.com/documentation/testing/expectation/isrequired)
+
+기대가 통과해야 했는지 여부입니다.
+
+[`var sourceLocation: SourceLocation`](https://developer.apple.com/documentation/testing/expectation/sourcelocation)
+
+이 기대가 평가된 소스 위치입니다.
+
+## [관계](https://developer.apple.com/documentation/testing/expectation#relationships)
+
+### [준수 대상](https://developer.apple.com/documentation/testing/expectation#conforms-to)
+
+- [`Sendable`](https://developer.apple.com/documentation/Swift/Sendable)
+
+## [참고 항목](https://developer.apple.com/documentation/testing/expectation#see-also)
+
+### [확인된 기대에 대한 정보 검색하기](https://developer.apple.com/documentation/testing/expectation#Retrieving-information-about-checked-expectations)
+
+[`struct ExpectationFailedError`](https://developer.apple.com/documentation/testing/expectationfailederror)
+
+평가 중 기대가 실패할 때 발생하는 오류를 설명하는 타입입니다.
+
+[`protocol CustomTestStringConvertible`](https://developer.apple.com/documentation/testing/customteststringconvertible)
+
+테스트 출력의 일부로 표시될 때 사용자 정의 문자열 표현을 가진 타입을 설명하는 프로토콜입니다.
+
+현재 페이지는 기대입니다.
+
+## Swift의 매개변수화된 테스팅
+[탐색 건너뛰기](https://developer.apple.com/documentation/testing/parameterizedtesting#app-main)
+
+- [Swift 테스팅](https://developer.apple.com/documentation/testing)
+- 매개변수화된 테스트 구현하기
+
+기사
+
+# 매개변수화된 테스트 구현하기
+
+테스트 함수에서 여러 테스트 케이스를 생성하기 위해 다른 입력 매개변수를 지정합니다.
+
+## [개요](https://developer.apple.com/documentation/testing/parameterizedtesting#Overview)
+
+일부 테스트는 다양한 입력에 대해 실행해야 합니다. 예를 들어, 테스트는 열거형의 모든 케이스를 확인해야 할 수 있습니다. 테스팅 라이브러리를 사용하면 개발자는 테스트 중에 반복할 하나 이상의 컬렉션을 지정할 수 있으며, 해당 컬렉션의 요소는 테스트 함수로 전달됩니다. 특정 인수 값 집합으로 테스트 함수를 호출하는 것을 테스트 _케이스_라고 합니다.
+
+기본적으로 테스트 함수의 테스트 케이스는 서로 병렬로 실행됩니다. 테스트 병렬화에 대한 자세한 내용은 [테스트를 직렬 또는 병렬로 실행하기](https://developer.apple.com/documentation/testing/parallelization)를 참조하십시오.
+
+### [값 배열에 대해 매개변수화하기](https://developer.apple.com/documentation/testing/parameterizedtesting#Parameterize-over-an-array-of-values)
+
+테스트해야 하는 값을 포함하는 배열에 대해 테스트를 _n_번 실행하는 것이 매우 일반적입니다. 다음 테스트 함수를 고려하십시오.
+
+```
+enum Food {
+  case burger, iceCream, burrito, noodleBowl, kebab
+}
+
+@Test("모든 음식을 사용할 수 있습니다")
+func foodsAvailable() async throws {
+  for food: Food in [.burger, .iceCream, .burrito, .noodleBowl, .kebab] {
+    let foodTruck = FoodTruck(
+      selling: food
+    )
+    #expect(await foodTruck.cook(food))
+  }
+}
+
+```
+
+이 테스트 함수가 배열의 값 중 하나에 대해 실패하면 어떤 값이 실패했는지 불분명할 수 있습니다. 대신 테스트 함수를 다양한 입력에 대해 _매개변수화_할 수 있습니다.
+
+```
+enum Food {
+  case burger, iceCream, burrito, noodleBowl, kebab
+}
+
+@Test("모든 음식을 사용할 수 있습니다", arguments: [Food.burger, .iceCream, .burrito, .noodleBowl, .kebab])
+func foodAvailable(_ food: Food) async throws {
+  let foodTruck = FoodTruck(
+    selling: food
+  )
+  #expect(await foodTruck.cook(food))
+}
+
+```
+
+매개변수화를 위해 `@Test` 속성에 컬렉션을 전달하면 테스팅 라이브러리는 컬렉션의 각 요소를 한 번에 하나씩 테스트 함수의 첫 번째(그리고 유일한) 인수로 전달합니다. 그런 다음 하나 이상의 입력에 대해 테스트가 실패하면 해당 진단에서 검사할 입력을 명확하게 나타낼 수 있습니다.
+
+### [열거형의 케이스에 대해 매개변수화하기](https://developer.apple.com/documentation/testing/parameterizedtesting#Parameterize-over-the-cases-of-an-enumeration)
+
+이전 예제에는 테스트할 `Food` 케이스의 하드코딩된 목록이 포함되어 있습니다. `Food`가 `CaseIterable`을 준수하는 열거형인 경우 대신 다음과 같이 작성할 수 있습니다.
+
+```
+enum Food: CaseIterable {
+  case burger, iceCream, burrito, noodleBowl, kebab
+}
+
+@Test("모든 음식을 사용할 수 있습니다", arguments: Food.allCases)
+func foodAvailable(_ food: Food) async throws {
+  let foodTruck = FoodTruck(
+    selling: food
+  )
+  #expect(await foodTruck.cook(food))
+}
+
+```
+
+이렇게 하면 `Food` 열거형에 새 케이스가 추가되면 이 함수에 의해 자동으로 테스트됩니다.
+
+### [정수 범위에 대해 매개변수화하기](https://developer.apple.com/documentation/testing/parameterizedtesting#Parameterize-over-a-range-of-integers)
+
+닫힌 정수 범위에 대해 테스트 함수를 매개변수화할 수 있습니다.
+
+```
+@Test("대량 주문 가능", arguments: 1 ... 100)
+func makeLargeOrder(count: Int) async throws {
+  let foodTruck = FoodTruck(
+    selling: .burger
+  )
+  #expect(await foodTruck.cook(.burger, quantity: count))
+}
+
+```
+
+### [두 개 이상의 컬렉션으로 테스트하기](https://developer.apple.com/documentation/testing/parameterizedtesting#Test-with-more-than-one-collection)
+
+두 개 이상의 컬렉션을 테스트할 수 있습니다. 다음 테스트 함수를 고려하십시오.
+
+```
+@Test("대량 주문 가능", arguments: Food.allCases, 1 ... 100)
+func makeLargeOrder(of food: Food, count: Int) async throws {
+  let foodTruck = FoodTruck(
+    selling: food
+  )
+  #expect(await foodTruck.cook(food, quantity: count))
+}
+
+```
+
+첫 번째 컬렉션의 요소는 테스트 함수의 첫 번째 인수로 전달되고, 두 번째 컬렉션의 요소는 두 번째 인수로 전달되는 식입니다.
+
+`Food` 열거형에 5개의 케이스가 있다고 가정하면 이 테스트 함수는 실행될 때 음식과 주문 크기의 모든 가능한 조합으로 500번(5 x 100) 호출됩니다. 이러한 조합을 컬렉션의 데카르트 곱이라고 합니다.
+
+위에 표시된 조합 의미 체계를 피하려면 [`zip()`](https://developer.apple.com/documentation/swift/zip(_:_:))을 사용하십시오.
+
+```
+@Test("대량 주문 가능", arguments: zip(Food.allCases, 1 ... 100))
+func makeLargeOrder(of food: Food, count: Int) async throws {
+  let foodTruck = FoodTruck(
+    selling: food
+  )
+  #expect(await foodTruck.cook(food, quantity: count))
+}
+
+```
+
+압축된 시퀀스는 자동으로 두 개의 인수로 "분해"된 다음 평가를 위해 테스트 함수로 전달됩니다.
+
+이 수정된 테스트 함수는 압축된 시퀀스의 각 튜플에 대해 한 번씩 호출되어 500번 대신 총 5번 호출됩니다. 즉, 이 테스트 함수는 `(.burger, 1)`, `(.burger, 2)`, `(.burger, 3)`, ..., `(.kebab, 99)`, `(.kebab, 100)` 대신 `(.burger, 1)`, `(.iceCream, 2)`, ..., `(.kebab, 5)` 입력을 전달받습니다.
+
+### [선택된 테스트 케이스 실행하기](https://developer.apple.com/documentation/testing/parameterizedtesting#Run-selected-test-cases)
+
+매개변수화된 테스트가 특정 요구 사항을 충족하는 경우 테스팅 라이브러리를 통해 사람들이 포함된 특정 테스트 케이스를 실행할 수 있습니다. 이는 테스트에 많은 케이스가 있지만 일부만 실패하는 경우 실패하는 케이스를 격리하여 다시 실행하고 디버깅할 수 있으므로 유용할 수 있습니다.
+
+선택된 테스트 케이스 실행을 지원하려면 테스트 케이스의 인수를 결정적으로 일치시킬 수 있어야 합니다. 누군가 매개변수화된 테스트 함수의 선택된 테스트 케이스를 실행하려고 하면 테스팅 라이브러리는 테스트 케이스의 각 인수가 여러 알려진 프로토콜 중 하나를 준수하는지 평가하고, 테스트 케이스의 모든 인수가 해당 프로토콜 중 하나를 준수하면 해당 테스트 케이스를 선택적으로 실행할 수 있습니다. 다음은 알려진 프로토콜을 우선 순위(가장 높은 순서에서 가장 낮은 순서)로 나열한 것입니다.
+
+1. [`CustomTestArgumentEncodable`](https://developer.apple.com/documentation/testing/customtestargumentencodable)
+2. `RawRepresentable`, 여기서 `RawValue`는 `Encodable`을 준수합니다.
+3. `Encodable`
+4. `Identifiable`, 여기서 `ID`는 `Encodable`을 준수합니다.
+
+
+테스트 케이스의 인수가 위의 요구 사항 중 하나를 충족하지 않으면 전체 테스트 케이스를 선택적으로 실행할 수 없습니다.
+
+## [참고 항목](https://developer.apple.com/documentation/testing/parameterizedtesting#see-also)
+
+### [테스트 매개변수화](https://developer.apple.com/documentation/testing/parameterizedtesting#Test-parameterization)
+
+[`macro Test<C>(String?, any TestTrait..., arguments: C)`](https://developer.apple.com/documentation/testing/test(_:_:arguments:)-8kn7a)
+
+값의 컬렉션에 대해 매개변수화된 테스트를 선언합니다.
+
+[`macro Test<C1, C2>(String?, any TestTrait..., arguments: C1, C2)`](https://developer.apple.com/documentation/testing/test(_:_:arguments:_:))
+
+두 개의 값 컬렉션에 대해 매개변수화된 테스트를 선언합니다.
+
+[`macro Test<C1, C2>(String?, any TestTrait..., arguments: Zip2Sequence<C1, C2>)`](https://developer.apple.com/documentation/testing/test(_:_:arguments:)-3rzok)
+
+두 개의 압축된 값 컬렉션에 대해 매개변수화된 테스트를 선언합니다.
+
+[`protocol CustomTestArgumentEncodable`](https://developer.apple.com/documentation/testing/customtestargumentencodable)
+
+매개변수화된 테스트에 전달된 인수를 인코딩하는 방법을 사용자 정의하기 위한 프로토콜로, 특정 인수를 실행할 때 일치시키는 데 사용됩니다.
+
+[`struct Case`](https://developer.apple.com/documentation/testing/test/case)
+
+매개변수화된 [`Test`](https://developer.apple.com/documentation/testing/test)의 단일 테스트 케이스입니다.
+
+현재 페이지는 매개변수화된 테스트 구현하기입니다.
+
+## 조건 특성
+[탐색 건너뛰기](https://developer.apple.com/documentation/testing/conditiontrait#app-main)
+
+- [Swift 테스팅](https://developer.apple.com/documentation/testing)
+- ConditionTrait
+
+구조체
+
+# ConditionTrait
+
+테스팅 라이브러리가 테스트를 활성화하기 위해 충족해야 하는 조건을 정의하는 타입입니다.
+
+iOSiPadOSMac CatalystmacOStvOSvisionOSwatchOSSwift 6.0+Xcode 16.0+
+
+```
+struct ConditionTrait
+```
+
+## [언급된 곳](https://developer.apple.com/documentation/testing/conditiontrait#mentions)
+
+[XCTest에서 테스트 마이그레이션하기](https://developer.apple.com/documentation/testing/migratingfromxctest)
+
+## [개요](https://developer.apple.com/documentation/testing/conditiontrait#overview)
+
+이 특성을 테스트에 추가하려면 다음 함수 중 하나를 사용합니다.
+
+- [`enabled(if:_:sourceLocation:)`](https://developer.apple.com/documentation/testing/trait/enabled(if:_:sourcelocation:))
+- [`enabled(_:sourceLocation:_:)`](https://developer.apple.com/documentation/testing/trait/enabled(_:sourcelocation:_:))
+- [`disabled(_:sourceLocation:)`](https://developer.apple.com/documentation/testing/trait/disabled(_:sourcelocation:))
+- [`disabled(if:_:sourceLocation:)`](https://developer.apple.com/documentation/testing/trait/disabled(if:_:sourcelocation:))
+- [`disabled(_:sourceLocation:_:)`](https://developer.apple.com/documentation/testing/trait/disabled(_:sourcelocation:_:))
+
+
+## [주제](https://developer.apple.com/documentation/testing/conditiontrait#topics)
+
+### [인스턴스 속성](https://developer.apple.com/documentation/testing/conditiontrait#Instance-Properties)
+
+[`var comments: [Comment]`](https://developer.apple.com/documentation/testing/conditiontrait/comments)
+
+이 특성에 대한 사용자가 제공한 주석입니다.
+
+[`var isRecursive: Bool`](https://developer.apple.com/documentation/testing/conditiontrait/isrecursive)
+
+이 인스턴스를 하위 테스트 스위트 및 테스트 함수에 재귀적으로 적용해야 하는지 여부입니다.
+
+[`var sourceLocation: SourceLocation`](https://developer.apple.com/documentation/testing/conditiontrait/sourcelocation)
+
+이 특성이 지정된 소스 위치입니다.
+
+### [인스턴스 메서드](https://developer.apple.com/documentation/testing/conditiontrait#Instance-Methods)
+
+[`func prepare(for: Test) async throws`](https://developer.apple.com/documentation/testing/conditiontrait/prepare(for:))
+
+이 특성이 있는 테스트를 실행할 준비를 합니다.
+
+### [타입 별칭](https://developer.apple.com/documentation/testing/conditiontrait#Type-Aliases)
+
+[`typealias TestScopeProvider`](https://developer.apple.com/documentation/testing/conditiontrait/testscopeprovider)
+
+이 특성에 대한 테스트 범위 제공자의 타입입니다.
+
+### [기본 구현](https://developer.apple.com/documentation/testing/conditiontrait#Default-Implementations)
+
+[API 참조
+Trait 구현](https://developer.apple.com/documentation/testing/conditiontrait/trait-implementations)
+
+## [관계](https://developer.apple.com/documentation/testing/conditiontrait#relationships)
+
+### [준수 대상](https://developer.apple.com/documentation/testing/conditiontrait#conforms-to)
+
+- [`Sendable`](https://developer.apple.com/documentation/Swift/Sendable)
+- [`SuiteTrait`](https://developer.apple.com/documentation/testing/suitetrait)
+- [`TestTrait`](https://developer.apple.com/documentation/testing/testtrait)
+- [`Trait`](https://developer.apple.com/documentation/testing/trait)
+
+## [참고 항목](https://developer.apple.com/documentation/testing/conditiontrait#see-also)
+
+### [지원 타입](https://developer.apple.com/documentation/testing/conditiontrait#Supporting-types)
+
+[`struct Bug`](https://developer.apple.com/documentation/testing/bug)
+
+테스트에서 추적하는 버그 보고서를 나타내는 타입입니다.
+
+[`struct Comment`](https://developer.apple.com/documentation/testing/comment)
+
+테스트와 관련된 주석을 나타내는 타입입니다.
+
+[`struct ParallelizationTrait`](https://developer.apple.com/documentation/testing/parallelizationtrait)
+
+테스팅 라이브러리가 이 테스트를 직렬 또는 병렬로 실행할지 여부를 정의하는 타입입니다.
+
+[`struct Tag`](https://developer.apple.com/documentation/testing/tag)
+
+테스트에 적용할 수 있는 태그를 나타내는 타입입니다.
+
+[`struct List`](https://developer.apple.com/documentation/testing/tag/list)
+
+테스트에 적용된 하나 이상의 태그를 나타내는 타입입니다.
+
+[`struct TimeLimitTrait`](https://developer.apple.com/documentation/testing/timelimittrait)
+
+테스트에 적용할 시간 제한을 정의하는 타입입니다.
+
+현재 페이지는 ConditionTrait입니다.
+
+## Swift의 소스 위치
+[탐색 건너뛰기](https://developer.apple.com/documentation/testing/sourcelocation#app-main)
+
+- [Swift 테스팅](https://developer.apple.com/documentation/testing)
+- SourceLocation
+
+구조체
+
+# SourceLocation
+
+소스 코드의 위치를 나타내는 타입입니다.
+
+iOSiPadOSMac CatalystmacOStvOSvisionOSwatchOSSwift 6.0+Xcode 16.0+
+
+```
+struct SourceLocation
+```
+
+## [주제](https://developer.apple.com/documentation/testing/sourcelocation#topics)
+
+### [초기화](https://developer.apple.com/documentation/testing/sourcelocation#Initializers)
+
+[`init(fileID: String, filePath: String, line: Int, column: Int)`](https://developer.apple.com/documentation/testing/sourcelocation/init(fileid:filepath:line:column:))
+
+지정된 위치 세부 정보로 이 타입의 인스턴스를 초기화합니다.
+
+### [인스턴스 속성](https://developer.apple.com/documentation/testing/sourcelocation#Instance-Properties)
+
+[`var column: Int`](https://developer.apple.com/documentation/testing/sourcelocation/column)
+
+소스 파일의 열입니다.
+
+[`var fileID: String`](https://developer.apple.com/documentation/testing/sourcelocation/fileid)
+
+소스 파일의 파일 ID입니다.
+
+[`var fileName: String`](https://developer.apple.com/documentation/testing/sourcelocation/filename)
+
+소스 파일의 이름입니다.
+
+[`var line: Int`](https://developer.apple.com/documentation/testing/sourcelocation/line)
+
+소스 파일의 줄입니다.
+
+[`var moduleName: String`](https://developer.apple.com/documentation/testing/sourcelocation/modulename)
+
+소스 파일을 포함하는 모듈의 이름입니다.
+
+### [기본 구현](https://developer.apple.com/documentation/testing/sourcelocation#Default-Implementations)
+
+[API 참조
+Comparable 구현](https://developer.apple.com/documentation/testing/sourcelocation/comparable-implementations)
+
+[API 참조
+CustomDebugStringConvertible 구현](https://developer.apple.com/documentation/testing/sourcelocation/customdebugstringconvertible-implementations)
+
+[API 참조
+CustomStringConvertible 구현](https://developer.apple.com/documentation/testing/sourcelocation/customstringconvertible-implementations)
+
+[API 참조
+Decodable 구현](https://developer.apple.com/documentation/testing/sourcelocation/decodable-implementations)
+
+[API 참조
+Encodable 구현](https://developer.apple.com/documentation/testing/sourcelocation/encodable-implementations)
+
+[API 참조
+Equatable 구현](https://developer.apple.com/documentation/testing/sourcelocation/equatable-implementations)
+
+[API 참조
+Hashable 구현](https://developer.apple.com/documentation/testing/sourcelocation/hashable-implementations)
+
+## [관계](https://developer.apple.com/documentation/testing/sourcelocation#relationships)
+
+### [준수 대상](https://developer.apple.com/documentation/testing/sourcelocation#conforms-to)
+
+- [`Comparable`](https://developer.apple.com/documentation/Swift/Comparable)
+- [`Copyable`](https://developer.apple.com/documentation/Swift/Copyable)
+- [`CustomDebugStringConvertible`](https://developer.apple.com/documentation/Swift/CustomDebugStringConvertible)
+- [`CustomStringConvertible`](https://developer.apple.com/documentation/Swift/CustomStringConvertible)
+- [`Decodable`](https://developer.apple.com/documentation/Swift/Decodable)
+- [`Encodable`](https://developer.apple.com/documentation/Swift/Encodable)
+- [`Equatable`](https://developer.apple.com/documentation/Swift/Equatable)
+- [`Hashable`](https://developer.apple.com/documentation/Swift/Hashable)
+- [`Sendable`](https://developer.apple.com/documentation/Swift/Sendable)
+
+현재 페이지는 SourceLocation입니다.
+
+## 버그 보고 구조체
+[탐색 건너뛰기](https://developer.apple.com/documentation/testing/bug#app-main)
+
+- [Swift 테스팅](https://developer.apple.com/documentation/testing)
+- 버그
+
+구조체
+
+# 버그
+
+테스트에서 추적하는 버그 보고서를 나타내는 타입입니다.
+
+iOSiPadOSMac CatalystmacOStvOSvisionOSwatchOSSwift 6.0+Xcode 16.0+
+
+```
+struct Bug
+```
+
+## [언급된 곳](https://developer.apple.com/documentation/testing/bug#mentions)
+
+[버그 식별자 해석하기](https://developer.apple.com/documentation/testing/bugidentifiers)
+
+[테스트에 주석 추가하기](https://developer.apple.com/documentation/testing/addingcomments)
+
+## [개요](https://developer.apple.com/documentation/testing/bug#overview)
+
+이 특성을 테스트에 추가하려면 다음 함수 중 하나를 사용합니다.
+
+- [`bug(_:_:)`](https://developer.apple.com/documentation/testing/trait/bug(_:_:))
+- [`bug(_:id:_:)`](https://developer.apple.com/documentation/testing/trait/bug(_:id:_:)-10yf5)
+- [`bug(_:id:_:)`](https://developer.apple.com/documentation/testing/trait/bug(_:id:_:)-3vtpl)
+
+
+## [주제](https://developer.apple.com/documentation/testing/bug#topics)
+
+### [인스턴스 속성](https://developer.apple.com/documentation/testing/bug#Instance-Properties)
+
+[`var id: String?`](https://developer.apple.com/documentation/testing/bug/id)
+
+사용 가능한 경우 이 버그의 관련 버그 추적 시스템에 있는 고유 식별자입니다.
+
+[`var title: Comment?`](https://developer.apple.com/documentation/testing/bug/title)
+
+테스트 작성자가 지정한 경우 버그의 사람이 읽을 수 있는 제목입니다.
+
+```
